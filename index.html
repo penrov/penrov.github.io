@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PENROV</title>
+<style>
+  :root {
+    --indigo: #4A40C1;
+    --amber: #FEC61E;
+    --cream: #FEF2D9;
+    --navy: #32297B;
+    --lavender: #F3E6FD;
+    --orange: #F75A1A;
+    --green: #2E9E6B;
+    --muted: #6B63A8;
+    --border: #D8D2F2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, system-ui, sans-serif;
+    background: var(--cream);
+    color: var(--navy);
+    min-height: 100vh;
+    padding: env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0) 0;
+  }
+  .wrap { max-width: 420px; margin: 0 auto; padding: 24px 20px; min-height: 100vh; display: flex; flex-direction: column; }
+  .screen { display: none; flex-direction: column; gap: 14px; flex: 1; }
+  .screen.active { display: flex; }
+  .logo-row { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 30px 0; }
+  .logo-row .name { font-size: 26px; font-weight: 700; color: var(--indigo); letter-spacing: 1px; }
+  .logo-row .tag { font-size: 13px; color: var(--muted); }
+  h1 { font-size: 19px; font-weight: 600; }
+  .sub { font-size: 13px; color: var(--muted); }
+  label { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 4px; display: block; }
+  input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 14px; background: #fff; }
+  .field { margin-bottom: 4px; }
+  button { font-family: inherit; cursor: pointer; border: none; }
+  .btn { background: var(--indigo); color: #fff; border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 600; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn:disabled { opacity: 0.6; }
+  .btn-outline { background: transparent; color: var(--indigo); border: 1.5px solid var(--indigo); border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 600; width: 100%; }
+  .link-btn { background: none; color: var(--muted); font-size: 13px; text-decoration: underline; }
+  .card { background: #fff; border-radius: 14px; padding: 16px; }
+  .error { color: var(--orange); font-size: 13px; background: #FFF0E8; padding: 10px 12px; border-radius: 10px; display: none; }
+  .error.show { display: block; }
+  .code-box { background: var(--lavender); border-radius: 14px; padding: 18px; text-align: center; }
+  .code-box .code { font-size: 28px; font-weight: 700; letter-spacing: 6px; margin: 8px 0; }
+  .child-card { background: #fff; border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--indigo); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0; }
+  .child-card .info { flex: 1; }
+  .child-card .info .n { font-weight: 600; font-size: 14px; }
+  .child-card .info .a { font-size: 12px; color: var(--muted); }
+  .topbar { display: flex; align-items: center; gap: 10px; }
+  .topbar .back { color: var(--muted); font-size: 13px; cursor: pointer; }
+  .spacer { flex: 1; }
+  .center-note { text-align: center; font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 9px 14px; border-radius: 999px; border: 1.5px solid var(--border); background: #fff; color: var(--navy); font-size: 13px; font-weight: 600; }
+  .chip.on { background: var(--indigo); color: #fff; border-color: var(--indigo); }
+  #tt-days { display: flex; flex-direction: column; gap: 10px; }
+  .day-block { background: #fff; border-radius: 14px; padding: 12px 14px; }
+  .day-block h2 { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 6px; }
+  .session { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--lavender); cursor: pointer; }
+  .session .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .session .s-name { font-weight: 600; font-size: 14px; }
+  .session .s-time { font-size: 12px; color: var(--muted); }
+  .tag-reminder { font-size: 10px; font-weight: 700; background: var(--lavender); color: var(--indigo); padding: 3px 8px; border-radius: 999px; }
+  .danger { color: var(--orange); border-color: var(--orange); }
+  .notif-card { display: flex; align-items: center; gap: 12px; background: var(--lavender); border-radius: 14px; padding: 12px 14px; }
+  .notif-card .notif-text { flex: 1; display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--muted); }
+  .notif-card .notif-text strong { font-size: 13px; color: var(--navy); }
+  .notif-btn { background: var(--indigo); color: #fff; border-radius: 999px; padding: 9px 16px; font-size: 13px; font-weight: 600; }
+  .day-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .day-head h2 { margin-bottom: 0; }
+  .add-day { background: var(--lavender); color: var(--indigo); border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 700; }
+  .edit-hint { font-size: 11px; color: var(--muted); }
+  .time-row { display: flex; gap: 10px; }
+  .time-row .field { flex: 1; }
+  .dur-note { font-size: 12px; color: var(--muted); margin-top: -2px; }
+  .warn-card { background: #FFF6DB; border: 1.5px solid var(--amber); border-radius: 12px; padding: 12px 14px; font-size: 13px; color: var(--navy); }
+  .warn-card strong { display: block; margin-bottom: 4px; }
+  .warn-card ul { margin: 0 0 0 18px; padding: 0; }
+  .warn-card li { margin: 2px 0; }
+  .warn-card .suggest { margin-top: 10px; background: var(--indigo); color: #fff; border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 700; }
+  textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 15px; background: #fff; font-family: inherit; color: var(--navy); resize: vertical; line-height: 1.4; }
+  .c-list { display: flex; flex-direction: column; gap: 10px; }
+  .c-card { background: #fff; border-radius: 14px; padding: 14px; display: flex; gap: 12px; align-items: flex-start; border: 1.5px solid transparent; }
+  .c-card.tappable { cursor: pointer; }
+  .c-card .c-dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  .c-card .c-main { flex: 1; min-width: 0; }
+  .c-card .c-name { font-weight: 700; font-size: 15px; }
+  .c-card .c-time { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .c-card .c-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .c-card .c-cta { font-size: 13px; font-weight: 700; color: var(--indigo); margin-top: 8px; }
+  .c-card .c-snippet { font-size: 13px; margin-top: 8px; background: var(--lavender); border-radius: 10px; padding: 8px 10px; word-wrap: break-word; }
+  .c-card.now { border-color: var(--amber); background: #FFFBEA; }
+  .c-card.ready { border-color: var(--indigo); }
+  .c-tag { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .c-tag.done { background: #E4F6EC; color: var(--green); }
+  .c-tag.now { background: var(--amber); color: var(--navy); }
+  .c-tag.ready { background: var(--indigo); color: #fff; }
+  .c-tag.next { background: var(--lavender); color: var(--indigo); }
+  .c-tag.later { background: #EFEDF8; color: var(--muted); }
+  .flash { display: none; background: #E4F6EC; color: var(--green); border-radius: 12px; padding: 10px 12px; font-size: 13px; font-weight: 600; }
+  .kid-list { display: flex; flex-direction: column; gap: 8px; }
+  .kid-row { display: flex; gap: 8px; align-items: stretch; }
+  .kid-btn { flex: 1; background: #fff; color: var(--navy); border: 1.5px solid var(--indigo); border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700; text-align: left; }
+  .kid-x { background: transparent; color: var(--muted); font-size: 20px; padding: 0 10px; }
+  .empty-note { background: #fff; border-radius: 14px; padding: 18px 16px; text-align: center; font-size: 14px; }
+  .empty-note .sub { margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- FRONT DOOR -->
+  <div class="screen active" id="screen-front">
+    <div class="logo-row">
+      <div class="name">PENROV</div>
+      <div class="tag">Reading time, together</div>
+    </div>
+    <div id="front-children" style="display:none">
+      <p class="sub" style="text-align:center;margin-bottom:8px">Continue as</p>
+      <div class="kid-list" id="front-children-list"></div>
+    </div>
+    <div class="error" id="front-error"></div>
+    <button class="btn" onclick="showScreen('signup')">Get started</button>
+    <button class="btn-outline" onclick="showScreen('login')">I'm a co-parent, or using a new device</button>
+    <button class="btn-outline" onclick="showScreen('child-entry')">I'm a child with a code</button>
+  </div>
+
+  <!-- CREATE FAMILY (first-time parent, no code involved) -->
+  <div class="screen" id="screen-signup">
+    <div class="topbar"><span class="back" onclick="showScreen('front')">&larr; Back</span></div>
+    <h1>Welcome</h1>
+    <p class="sub">Just your name to get started.</p>
+    <div class="error" id="signup-error"></div>
+    <div class="field"><label>Your name</label><input id="signup-name" type="text" placeholder="e.g. Blessing"></div>
+    <button class="btn" id="signup-btn" onclick="handleSignup()">Continue</button>
+  </div>
+
+  <!-- RESTORE ACCESS / CO-PARENT (tucked away, not the primary door) -->
+  <div class="screen" id="screen-login">
+    <div class="topbar"><span class="back" onclick="showScreen('front')">&larr; Back</span></div>
+    <h1>Join your family</h1>
+    <p class="sub">Enter the family code &mdash; the other parent can find it on their dashboard.</p>
+    <div class="error" id="login-error"></div>
+    <div class="field"><label>Family code</label><input id="login-code" type="text" maxlength="6" autocapitalize="characters" autocomplete="off" style="letter-spacing:4px;text-transform:uppercase;font-size:18px;text-align:center" placeholder="------"></div>
+    <button class="btn" id="login-btn" onclick="handleLogin()">Continue</button>
+  </div>
+
+  <!-- CHILD ENTRY -->
+  <div class="screen" id="screen-child-entry">
+    <div class="topbar"><span class="back" onclick="showScreen('front')">&larr; Back</span></div>
+    <h1>Enter your code</h1>
+    <p class="sub">A parent gave you a code. Type it in below.</p>
+    <div class="error" id="child-entry-error"></div>
+    <div class="field"><label>Your code</label><input id="child-entry-code" type="text" maxlength="6" autocapitalize="characters" autocomplete="off" style="letter-spacing:4px;text-transform:uppercase;font-size:18px;text-align:center" placeholder="------"></div>
+    <button class="btn" id="child-entry-btn" onclick="handleChildEntry()">Continue</button>
+  </div>
+
+  <!-- CHILD HOME -->
+  <div class="screen" id="screen-child-home">
+    <div class="topbar">
+      <h1 style="flex:1" id="ch-title">Hi!</h1>
+      <span class="back" onclick="refreshChildHome(true)">Refresh</span>
+      <span class="back" onclick="leaveChildHome()">Switch</span>
+    </div>
+    <p class="sub" id="ch-date"></p>
+    <div class="flash" id="ch-flash"></div>
+    <div id="child-notif-banner" class="notif-card" style="display:none">
+      <div class="notif-text"><strong>Get reading reminders</strong><span>We'll ping you when it's time to read.</span></div>
+      <button class="notif-btn" onclick="enableChildNotifications()">Turn on</button>
+    </div>
+    <p class="sub" id="ch-progress"></p>
+    <div class="c-list" id="ch-list"></div>
+  </div>
+
+  <!-- CHILD: WRITE WHAT YOU LEARNED -->
+  <div class="screen" id="screen-child-log">
+    <div class="topbar"><span class="back" onclick="showScreen('child-home')">&larr; Back</span></div>
+    <h1>What did you learn?</h1>
+    <p class="sub" id="cl-sub"></p>
+    <div class="error" id="cl-error"></div>
+    <div class="field"><label>Write a few sentences about what you read</label>
+      <textarea id="cl-text" rows="6" maxlength="1000" placeholder="Today I read about..." oninput="clUpdateCount()"></textarea>
+    </div>
+    <p class="dur-note" id="cl-count"></p>
+    <button class="btn" id="cl-save" onclick="saveChildLog()">Save</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="screen" id="screen-dashboard">
+    <div class="topbar">
+      <h1 style="flex:1">Your children</h1>
+      <span class="back" onclick="handleLogout()">Log out</span>
+    </div>
+    <p class="sub" id="dashboard-family-code"></p>
+    <div id="parent-notif-banner" class="notif-card" style="display:none">
+      <div class="notif-text"><strong>Get reading-time alerts</strong><span>One ping a day, when your child's first session starts.</span></div>
+      <button class="notif-btn" onclick="enableParentNotifications()">Turn on</button>
+    </div>
+    <div id="children-list"></div>
+    <button class="btn" id="add-child-btn" onclick="showScreen('add-child')">+ Add child</button>
+    <p class="sub" id="coparent-note" style="display:none;text-align:center">Only the parent who created this family can add children.</p>
+  </div>
+
+  <!-- ADD CHILD -->
+  <div class="screen" id="screen-add-child">
+    <div class="topbar"><span class="back" onclick="showScreen('dashboard')">&larr; Back</span></div>
+    <h1>New profile</h1>
+    <div class="error" id="child-error"></div>
+    <div class="field"><label>Name</label><input id="child-name" type="text" placeholder="e.g. Amara"></div>
+    <div class="field"><label>Age</label><input id="child-age" type="number" min="1" max="19" placeholder="e.g. 7"></div>
+    <button class="btn" id="child-btn" onclick="handleAddChild()">Save and get a code</button>
+  </div>
+
+  <!-- UNLOCK -->
+  <div class="screen" id="screen-unlock">
+    <div class="topbar"><span class="back" onclick="showScreen('dashboard')">&larr; Back</span></div>
+    <h1>Unlock PENROV</h1>
+    <p class="sub">The free plan covers one child. Enter your purchase code from Selar or Gumroad to add more.</p>
+    <div class="error" id="unlock-error"></div>
+    <div class="field"><label>Purchase code</label><input id="unlock-code" type="text" autocapitalize="characters" autocomplete="off" placeholder="e.g. SEL-AB12-CD34"></div>
+    <button class="btn" id="unlock-btn" onclick="handleUnlock()">Unlock</button>
+  </div>
+
+  <!-- CHILD CODE RESULT -->
+  <div class="screen" id="screen-child-code">
+    <div class="topbar"><span class="back" onclick="renderChildren(); loadFamilyCode(); showScreen('dashboard')">&larr; Dashboard</span></div>
+    <h1 id="code-title">Profile created</h1>
+    <div class="code-box">
+      <p class="sub">Give this code to <span id="code-child-name"></span></p>
+      <div class="code" id="code-value">------</div>
+    </div>
+    <p class="sub" style="text-align:center">This code only opens this child's own profile.</p>
+    <button class="btn" onclick="renderChildren(); loadFamilyCode(); showScreen('dashboard')">Done</button>
+  </div>
+
+  <!-- TIMETABLE -->
+  <div class="screen" id="screen-timetable">
+    <div class="topbar"><span class="back" onclick="backToDashboard()">&larr; Back</span></div>
+    <h1 id="tt-title">Timetable</h1>
+    <p class="sub">Use <strong>+ Add</strong> on any day to add as many subjects as you like. Tap an existing session to edit or delete it. Each day, you and your child get one reminder, at that day's first session.</p>
+    <div id="tt-days"></div>
+    <button class="btn" onclick="openSubjectForm()">+ Add subject</button>
+  </div>
+
+  <!-- ADD / EDIT SUBJECT -->
+  <div class="screen" id="screen-subject-form">
+    <div class="topbar"><span class="back" onclick="showScreen('timetable')">&larr; Back</span></div>
+    <h1 id="sf-title">Add subject</h1>
+    <div class="error" id="sf-error"></div>
+    <div class="field"><label>Subject</label><input id="sf-name" type="text" maxlength="40" placeholder="e.g. Mathematics"></div>
+    <div class="field" id="sf-days-field">
+      <label>Days</label>
+      <div class="chips" id="sf-days"></div>
+      <button type="button" class="link-btn" style="margin-top:8px" onclick="selectWeekdays()">Select Mon&ndash;Fri</button>
+    </div>
+    <div class="time-row">
+      <div class="field"><label>Start time</label><input id="sf-time" type="time" value="16:00" oninput="sfStartChanged()"></div>
+      <div class="field"><label>End time</label><input id="sf-end" type="time" value="16:30" oninput="sfUpdateDurationNote()"></div>
+    </div>
+    <p class="dur-note" id="sf-dur-note"></p>
+    <div id="sf-overlap" class="warn-card" style="display:none"></div>
+    <button class="btn" id="sf-save" onclick="saveSubject()">Save</button>
+    <button class="btn-outline danger" id="sf-delete" style="display:none" onclick="deleteSubject()">Delete this session</button>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = "https://qvitgveyyuomqfccehth.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_Ue53QNrMveynqKG07ChoKQ_mSb-ctI9";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let currentFamilyId = null;
+  let isPrimaryParent = true;
+  let currentChildCode = null;
+  const VAPID_PUBLIC_KEY = 'BAloo4HejlonqBcT7z31gyM7VPpM8p69urYyzYEWhg-42RXPRRLG2zBuhb_wMo123nJy2fAtDz3XeatWylxr_jI';
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+  }
+
+  async function syncParentSubscriptionQuietly() {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+      const subJson = sub.toJSON();
+      const { error } = await sb.rpc('save_parent_push_subscription', {
+        endpoint_input: subJson.endpoint,
+        p256dh_input: subJson.keys.p256dh,
+        auth_input: subJson.keys.auth
+      });
+      if (error) console.error('Quiet alert sync failed', error.message);
+    } catch (e) {
+      console.error('Quiet alert sync failed', e);
+    }
+  }
+
+  async function maybeShowParentNotifBanner() {
+    if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (Notification.permission === 'default') {
+      document.getElementById('parent-notif-banner').style.display = 'flex';
+    } else if (Notification.permission === 'granted') {
+      document.getElementById('parent-notif-banner').style.display = 'none';
+      syncParentSubscriptionQuietly();
+    }
+  }
+
+  async function maybeShowChildNotifBanner() {
+    if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (Notification.permission === 'default') {
+      document.getElementById('child-notif-banner').style.display = 'flex';
+    }
+  }
+
+  async function enableParentNotifications() {
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        document.getElementById('parent-notif-banner').style.display = 'none';
+        alert('Notifications are currently set to "' + permission + '" for this site in your browser, not granted.');
+        return;
+      }
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+      const subJson = sub.toJSON();
+      const { error } = await sb.rpc('save_parent_push_subscription', {
+        endpoint_input: subJson.endpoint,
+        p256dh_input: subJson.keys.p256dh,
+        auth_input: subJson.keys.auth
+      });
+      if (error) {
+        alert('Could not save this device for alerts: ' + error.message);
+        return;
+      }
+      document.getElementById('parent-notif-banner').style.display = 'none';
+    } catch (e) {
+      alert('Notification setup failed: ' + e.message);
+    }
+  }
+
+  async function enableChildNotifications() {
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') { document.getElementById('child-notif-banner').style.display = 'none'; return; }
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+      const subJson = sub.toJSON();
+      const { error } = await sb.rpc('save_child_push_subscription', {
+        code_input: currentChildCode,
+        endpoint_input: subJson.endpoint,
+        p256dh_input: subJson.keys.p256dh,
+        auth_input: subJson.keys.auth
+      });
+      if (error) { alert('Could not turn on reminders: ' + error.message); return; }
+      document.getElementById('child-notif-banner').style.display = 'none';
+    } catch (e) {
+      alert('Could not turn on reminders: ' + e.message);
+    }
+  }
+
+  async function syncChildSubscriptionQuietly() {
+    try {
+      if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      if (Notification.permission !== 'granted' || !currentChildCode) return;
+      const reg = await navigator.serviceWorker.ready;
+      const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+      const subJson = sub.toJSON();
+      const { error } = await sb.rpc('save_child_push_subscription', {
+        code_input: currentChildCode,
+        endpoint_input: subJson.endpoint,
+        p256dh_input: subJson.keys.p256dh,
+        auth_input: subJson.keys.auth
+      });
+      if (error) console.error('Quiet child alert sync failed', error.message);
+    } catch (e) {
+      console.error('Quiet child alert sync failed', e);
+    }
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(e => console.error('SW registration failed', e));
+  }
+
+  function updateAddChildVisibility() {
+    document.getElementById('add-child-btn').style.display = isPrimaryParent ? 'flex' : 'none';
+    document.getElementById('coparent-note').style.display = isPrimaryParent ? 'none' : 'block';
+  }
+
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    if (name === 'front') renderFrontKids();
+  }
+
+  function showError(elId, msg) {
+    const el = document.getElementById(elId);
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function clearError(elId) {
+    document.getElementById(elId).classList.remove('show');
+  }
+
+  function generateCode(len = 6) {
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no 0/O/1/I/L to avoid mix-ups
+    let out = '';
+    for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    return out;
+  }
+
+  async function handleSignup() {
+    clearError('signup-error');
+    const name = document.getElementById('signup-name').value.trim();
+    if (!name) {
+      showError('signup-error', 'Enter your name.');
+      return;
+    }
+    const btn = document.getElementById('signup-btn');
+    btn.disabled = true; btn.textContent = 'Setting up...';
+
+    const { data: authData, error: authError } = await sb.auth.signInAnonymously();
+    if (authError) {
+      showError('signup-error', authError.message);
+      btn.disabled = false; btn.textContent = 'Continue';
+      return;
+    }
+
+    const familyId = crypto.randomUUID();
+    const inviteCode = generateCode();
+
+    const { error: familyError } = await sb
+      .from('families')
+      .insert({ id: familyId, invite_code: inviteCode });
+
+    if (familyError) {
+      showError('signup-error', 'Family setup failed: ' + familyError.message);
+      btn.disabled = false; btn.textContent = 'Continue';
+      return;
+    }
+
+    const { error: parentError } = await sb
+      .from('parents')
+      .insert({ id: authData.user.id, family_id: familyId, name, is_primary: true });
+
+    if (parentError) {
+      showError('signup-error', 'Parent profile failed: ' + parentError.message);
+      btn.disabled = false; btn.textContent = 'Continue';
+      return;
+    }
+
+    currentFamilyId = familyId;
+    isPrimaryParent = true;
+    btn.disabled = false; btn.textContent = 'Continue';
+    renderChildren();
+    loadFamilyCode();
+    updateAddChildVisibility();
+    maybeShowParentNotifBanner();
+    showScreen('dashboard');
+  }
+
+  async function handleChildEntry() {
+    clearError('child-entry-error');
+    const code = document.getElementById('child-entry-code').value.trim().toUpperCase();
+    if (!code) {
+      showError('child-entry-error', 'Enter your code.');
+      return;
+    }
+    const btn = document.getElementById('child-entry-btn');
+    btn.disabled = true; btn.textContent = 'Checking...';
+    await openChildHome(code, 'child-entry-error');
+    btn.disabled = false; btn.textContent = 'Continue';
+  }
+
+  async function handleLogin() {
+    clearError('login-error');
+    const code = document.getElementById('login-code').value.trim().toUpperCase();
+    if (!code) {
+      showError('login-error', 'Enter a code.');
+      return;
+    }
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true; btn.textContent = 'Checking...';
+
+    const { data: lookup, error: lookupError } = await sb.rpc('get_family_by_code', { code_input: code });
+
+    if (lookupError || !lookup || lookup.length === 0) {
+      showError('login-error', "That code doesn't match any family.");
+      btn.disabled = false; btn.textContent = 'Continue';
+      return;
+    }
+
+    const familyId = lookup[0].id;
+
+    const { data: authData, error: authError } = await sb.auth.signInAnonymously();
+    if (authError) {
+      showError('login-error', authError.message);
+      btn.disabled = false; btn.textContent = 'Continue';
+      return;
+    }
+
+    const { data: existingParent } = await sb
+      .from('parents')
+      .select('id, is_primary')
+      .eq('id', authData.user.id)
+      .maybeSingle();
+
+    if (existingParent) {
+      isPrimaryParent = existingParent.is_primary;
+    } else {
+      const { data: inserted } = await sb
+        .from('parents')
+        .insert({ id: authData.user.id, family_id: familyId, name: 'Parent', is_primary: false })
+        .select('is_primary')
+        .single();
+      isPrimaryParent = inserted ? inserted.is_primary : false;
+    }
+
+    btn.disabled = false; btn.textContent = 'Continue';
+    currentFamilyId = familyId;
+    renderChildren();
+    loadFamilyCode();
+    updateAddChildVisibility();
+    maybeShowParentNotifBanner();
+    showScreen('dashboard');
+  }
+
+  async function handleLogout() {
+    await sb.auth.signOut();
+    currentFamilyId = null;
+    isPrimaryParent = true;
+    showScreen('front');
+  }
+
+  async function handleAddChild() {
+    clearError('child-error');
+    const name = document.getElementById('child-name').value.trim();
+    const age = parseInt(document.getElementById('child-age').value, 10);
+    if (!name || !age || age < 1 || age > 19) {
+      showError('child-error', 'Enter a name and a valid age.');
+      return;
+    }
+    const btn = document.getElementById('child-btn');
+    btn.disabled = true; btn.textContent = 'Checking...';
+
+    const { count, error: countError } = await sb
+      .from('children')
+      .select('*', { count: 'exact', head: true })
+      .eq('family_id', currentFamilyId);
+
+    const { data: familyRow, error: familyFetchError } = await sb
+      .from('families')
+      .select('unlocked')
+      .eq('id', currentFamilyId)
+      .single();
+
+    if (!countError && !familyFetchError && count >= 1 && !familyRow.unlocked) {
+      btn.disabled = false; btn.textContent = 'Save and get a code';
+      showScreen('unlock');
+      return;
+    }
+
+    btn.textContent = 'Saving...';
+    const joinCode = generateCode();
+
+    const { data, error } = await sb
+      .from('children')
+      .insert({ family_id: currentFamilyId, name, age, join_code: joinCode })
+      .select()
+      .single();
+
+    btn.disabled = false; btn.textContent = 'Save and get a code';
+
+    if (error) {
+      showError('child-error', error.message);
+      return;
+    }
+
+    document.getElementById('child-name').value = '';
+    document.getElementById('child-age').value = '';
+    document.getElementById('code-title').textContent = 'Profile created';
+    document.getElementById('code-child-name').textContent = data.name;
+    document.getElementById('code-value').textContent = data.join_code;
+    showScreen('child-code');
+  }
+
+  async function handleUnlock() {
+    clearError('unlock-error');
+    const code = document.getElementById('unlock-code').value.trim();
+    if (!code) {
+      showError('unlock-error', 'Enter your purchase code.');
+      return;
+    }
+    const btn = document.getElementById('unlock-btn');
+    btn.disabled = true; btn.textContent = 'Checking...';
+
+    const { data: redeemed, error: redeemError } = await sb.rpc('redeem_unlock_code', { code_input: code });
+
+    if (redeemError || !redeemed) {
+      showError('unlock-error', "That code didn't work. Check it and try again, or contact support.");
+      btn.disabled = false; btn.textContent = 'Unlock';
+      return;
+    }
+
+    const { error: updateError } = await sb
+      .from('families')
+      .update({ unlocked: true })
+      .eq('id', currentFamilyId);
+
+    btn.disabled = false; btn.textContent = 'Unlock';
+
+    if (updateError) {
+      showError('unlock-error', 'Code accepted, but unlocking failed: ' + updateError.message);
+      return;
+    }
+
+    showScreen('add-child');
+  }
+
+  async function loadFamilyCode() {
+    const { data, error } = await sb
+      .from('families')
+      .select('invite_code')
+      .eq('id', currentFamilyId)
+      .single();
+    const el = document.getElementById('dashboard-family-code');
+    if (!error && data) {
+      el.textContent = 'Family code: ' + data.invite_code + ' (for a co-parent, or a new device)';
+    } else {
+      el.textContent = '';
+    }
+  }
+
+  async function renderChildren() {
+    const { data, error } = await sb
+      .from('children')
+      .select('*')
+      .eq('family_id', currentFamilyId)
+      .order('created_at', { ascending: true });
+
+    const list = document.getElementById('children-list');
+    list.innerHTML = '';
+    if (error || !data || data.length === 0) {
+      list.innerHTML = '<p class="sub" style="text-align:center;padding:20px 0">No children added yet.</p>';
+      return;
+    }
+    data.forEach(child => {
+      const initial = child.name.charAt(0).toUpperCase();
+      const div = document.createElement('div');
+      div.className = 'child-card';
+      div.style.marginBottom = '8px';
+      div.style.cursor = 'pointer';
+      div.innerHTML = `
+        <div class="avatar">${esc(initial)}</div>
+        <div class="info">
+          <div class="n">${esc(child.name)}, ${esc(child.age)}</div>
+          <div class="a">Code: ${esc(child.join_code)}</div>
+        </div>
+        <span class="sub">Timetable &rsaquo;</span>`;
+      div.onclick = () => openTimetable(child.id, child.name);
+      list.appendChild(div);
+    });
+  }
+
+  // ---------- TIMETABLE ----------
+  const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const DAY_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const DAY_ORDER = [1,2,3,4,5,6,0]; // Monday first, Sunday last. Stored as 0=Sunday..6=Saturday.
+  const SUBJECT_COLORS = ['#4A40C1','#F75A1A','#2E9E6B','#E0A800','#B03FC4','#1E88C9'];
+
+  let ttChild = null;
+  let ttSubjects = [];
+  let editingSubject = null;
+  let selectedDays = new Set();
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  function formatTime(t) {
+    const [h, m] = t.split(':').map(Number);
+    const ap = h >= 12 ? 'pm' : 'am';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return h12 + ':' + String(m).padStart(2, '0') + ' ' + ap;
+  }
+
+  function colorFor(name) {
+    const n = name.trim().toLowerCase();
+    let h = 0;
+    for (let i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0;
+    return SUBJECT_COLORS[h % SUBJECT_COLORS.length];
+  }
+
+  function toMinutes(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+  function minutesBetween(a, b) { return toMinutes(b) - toMinutes(a); }
+  function addMinutes(t, mins) {
+    const total = Math.min(toMinutes(t) + mins, 23 * 60 + 59);
+    return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
+  }
+  function formatDuration(mins) {
+    const h = Math.floor(mins / 60), m = mins % 60;
+    if (h && m) return h + ' hr ' + m + ' min';
+    if (h) return h + ' hr';
+    return m + ' min';
+  }
+
+  function backToDashboard() {
+    renderChildren();
+    showScreen('dashboard');
+  }
+
+  async function openTimetable(id, name) {
+    ttChild = { id, name };
+    document.getElementById('tt-title').textContent = name + "'s timetable";
+    document.getElementById('tt-days').innerHTML = '<p class="sub">Loading...</p>';
+    showScreen('timetable');
+    await loadTimetable();
+  }
+
+  async function loadTimetable() {
+    const { data, error } = await sb
+      .from('subjects')
+      .select('*')
+      .eq('child_id', ttChild.id)
+      .order('start_time', { ascending: true });
+    if (error) {
+      document.getElementById('tt-days').innerHTML = '<div class="error show">Could not load the timetable: ' + esc(error.message) + '</div>';
+      return;
+    }
+    ttSubjects = data || [];
+    renderTimetable();
+  }
+
+  function renderTimetable() {
+    const box = document.getElementById('tt-days');
+    box.innerHTML = '';
+    DAY_ORDER.forEach(d => {
+      const rows = ttSubjects
+        .filter(s => s.day_of_week === d)
+        .sort((a, b) => a.start_time.localeCompare(b.start_time));
+      let html = '<div class="day-head"><h2>' + DAY_NAMES[d] + '</h2><button class="add-day" onclick="openSubjectForm(null,' + d + ')">+ Add</button></div>';
+      if (rows.length === 0) html += '<p class="sub">Nothing scheduled</p>';
+      rows.forEach((s, i) => {
+        html += '<div class="session" onclick="openSubjectForm(\'' + s.id + '\')">' +
+          '<span class="dot" style="background:' + colorFor(s.name) + '"></span>' +
+          '<div style="flex:1"><div class="s-name">' + esc(s.name) + '</div>' +
+          '<div class="s-time">' + formatTime(s.start_time) + ' &ndash; ' + formatTime(addMinutes(s.start_time.slice(0, 5), s.duration_minutes)) + ' &middot; ' + formatDuration(s.duration_minutes) + '</div></div>' +
+          (i === 0 ? '<span class="tag-reminder">reminder</span>' : '') +
+          '<span class="edit-hint">Edit &rsaquo;</span>' +
+          '</div>';
+      });
+      const block = document.createElement('div');
+      block.className = 'day-block';
+      block.innerHTML = html;
+      box.appendChild(block);
+    });
+  }
+
+  function renderDayChips() {
+    const box = document.getElementById('sf-days');
+    box.innerHTML = '';
+    DAY_ORDER.forEach(d => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip' + (selectedDays.has(d) ? ' on' : '');
+      b.textContent = DAY_SHORT[d];
+      b.onclick = () => {
+        if (selectedDays.has(d)) selectedDays.delete(d); else selectedDays.add(d);
+        renderDayChips();
+        sfCheckOverlap();
+      };
+      box.appendChild(b);
+    });
+  }
+
+  function selectWeekdays() {
+    selectedDays = new Set([1, 2, 3, 4, 5]);
+    renderDayChips();
+    sfCheckOverlap();
+  }
+
+  let sfPrevStart = '16:00';
+
+  // Sessions that clash with a proposed time. Back-to-back (one ends exactly when the next starts) is fine.
+  function findConflicts(days, startStr, endStr, excludeId) {
+    const ns = toMinutes(startStr), ne = toMinutes(endStr);
+    const out = [];
+    ttSubjects.forEach(s => {
+      if (excludeId && String(s.id) === String(excludeId)) return;
+      if (!days.includes(s.day_of_week)) return;
+      const ss = toMinutes(s.start_time.slice(0, 5)), se = ss + s.duration_minutes;
+      if (ns < se && ne > ss) out.push({ s, ss, se });
+    });
+    return out.sort((a, b) => (DAY_ORDER.indexOf(a.s.day_of_week) - DAY_ORDER.indexOf(b.s.day_of_week)) || (a.ss - b.ss));
+  }
+
+  function currentFormDays() {
+    return editingSubject ? [editingSubject.day_of_week] : [...selectedDays];
+  }
+
+  function hhmm(mins) {
+    return String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0');
+  }
+
+  function sfCheckOverlap() {
+    const box = document.getElementById('sf-overlap');
+    const btn = document.getElementById('sf-save');
+    const s = document.getElementById('sf-time').value, e = document.getElementById('sf-end').value;
+    const days = currentFormDays();
+    const excludeId = editingSubject ? editingSubject.id : null;
+    const hide = () => { box.style.display = 'none'; box.innerHTML = ''; btn.textContent = 'Save'; };
+    if (!s || !e || days.length === 0 || minutesBetween(s, e) <= 0) { hide(); return; }
+    const conflicts = findConflicts(days, s, e, excludeId);
+    if (conflicts.length === 0) { hide(); return; }
+
+    const shown = conflicts.slice(0, 3).map(x =>
+      '<li><strong style="display:inline">' + esc(x.s.name) + '</strong> on ' + DAY_NAMES[x.s.day_of_week] +
+      ' (' + formatTime(hhmm(x.ss)) + ' &ndash; ' + formatTime(addMinutes(hhmm(x.ss), x.s.duration_minutes)) + ')</li>').join('');
+    const more = conflicts.length > 3 ? '<li>and ' + (conflicts.length - 3) + ' more</li>' : '';
+
+    // Suggest the next slot of the same length that clashes with nothing
+    const dur = minutesBetween(s, e);
+    let cand = toMinutes(s), guard = 0, found = true;
+    while (guard++ < 30) {
+      const cs = findConflicts(days, hhmm(cand), hhmm(Math.min(cand + dur, 1439)), excludeId);
+      if (cs.length === 0) break;
+      cand = Math.max(...cs.map(x => x.se));
+      if (cand + dur > 1439) { found = false; break; }
+    }
+    if (guard >= 30) found = false;
+    let suggest = '';
+    if (found && cand !== toMinutes(s)) {
+      const ss = hhmm(cand), ee = hhmm(cand + dur);
+      suggest = '<button type="button" class="suggest" onclick="sfApplySuggestion(\'' + ss + '\',\'' + ee + '\')">Move to ' +
+        formatTime(ss) + ' &ndash; ' + formatTime(ee) + ' instead</button>';
+    }
+    box.innerHTML = '<strong>Heads up: this overlaps another session</strong><ul>' + shown + more + '</ul>' + suggest;
+    box.style.display = 'block';
+    btn.textContent = 'Save anyway';
+  }
+
+  function sfApplySuggestion(startStr, endStr) {
+    document.getElementById('sf-time').value = startStr;
+    document.getElementById('sf-end').value = endStr;
+    sfPrevStart = startStr;
+    sfUpdateDurationNote();
+  }
+
+  function sfUpdateDurationNote() {
+    const s = document.getElementById('sf-time').value, e = document.getElementById('sf-end').value;
+    const note = document.getElementById('sf-dur-note');
+    if (!s || !e) { note.textContent = ''; sfCheckOverlap(); return; }
+    const mins = minutesBetween(s, e);
+    note.textContent = mins > 0 ? 'That is ' + formatDuration(mins) + '.' : '';
+    sfCheckOverlap();
+  }
+
+  function sfStartChanged() {
+    const s = document.getElementById('sf-time').value;
+    const e = document.getElementById('sf-end').value;
+    if (!s) return;
+    let dur = (sfPrevStart && e) ? minutesBetween(sfPrevStart, e) : 30;
+    if (dur <= 0) dur = 30;
+    document.getElementById('sf-end').value = addMinutes(s, dur);
+    sfPrevStart = s;
+    sfUpdateDurationNote();
+  }
+
+  function openSubjectForm(id, presetDay) {
+    clearError('sf-error');
+    editingSubject = id ? ttSubjects.find(s => String(s.id) === String(id)) || null : null;
+    const editing = !!editingSubject;
+    document.getElementById('sf-title').textContent = editing ? 'Edit ' + DAY_NAMES[editingSubject.day_of_week] + ' session' : 'Add subject';
+    document.getElementById('sf-name').value = editing ? editingSubject.name : '';
+    // New session on a day that already has sessions: start where the last one ends
+    let startVal = '16:00';
+    if (editing) {
+      startVal = editingSubject.start_time.slice(0, 5);
+    } else if (presetDay !== undefined && presetDay !== null) {
+      const ends = ttSubjects.filter(s => s.day_of_week === presetDay)
+        .map(s => toMinutes(s.start_time.slice(0, 5)) + s.duration_minutes);
+      if (ends.length && Math.max(...ends) + 30 <= 1439) startVal = hhmm(Math.max(...ends));
+    }
+    document.getElementById('sf-time').value = startVal;
+    document.getElementById('sf-end').value = editing ? addMinutes(startVal, editingSubject.duration_minutes) : addMinutes(startVal, 30);
+    sfPrevStart = startVal;
+    sfUpdateDurationNote();
+    document.getElementById('sf-days-field').style.display = editing ? 'none' : 'block';
+    document.getElementById('sf-delete').style.display = editing ? 'block' : 'none';
+    selectedDays = new Set();
+    if (!editing && presetDay !== undefined && presetDay !== null) selectedDays.add(presetDay);
+    renderDayChips();
+    sfCheckOverlap();
+    showScreen('subject-form');
+  }
+
+  async function saveSubject() {
+    clearError('sf-error');
+    const name = document.getElementById('sf-name').value.trim();
+    const time = document.getElementById('sf-time').value;
+    const endTime = document.getElementById('sf-end').value;
+    if (!name) { showError('sf-error', 'Enter a subject name.'); return; }
+    if (!editingSubject && selectedDays.size === 0) { showError('sf-error', 'Pick at least one day.'); return; }
+    if (!time) { showError('sf-error', 'Pick a start time.'); return; }
+    if (!endTime) { showError('sf-error', 'Pick an end time.'); return; }
+    const duration = minutesBetween(time, endTime);
+    if (duration <= 0) { showError('sf-error', 'The end time must be after the start time.'); return; }
+
+    const btn = document.getElementById('sf-save');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    let error = null;
+
+    if (editingSubject) {
+      const res = await sb.from('subjects')
+        .update({ name, start_time: time, duration_minutes: duration, color: colorFor(name) })
+        .eq('id', editingSubject.id)
+        .select();
+      error = res.error;
+      if (!error && (!res.data || res.data.length === 0)) error = { message: 'Nothing was changed. You may not have permission.' };
+    } else {
+      const rows = [...selectedDays].map(d => ({
+        child_id: ttChild.id, name, day_of_week: d, start_time: time, duration_minutes: duration, color: colorFor(name)
+      }));
+      const res = await sb.from('subjects').insert(rows);
+      error = res.error;
+    }
+
+    btn.disabled = false; btn.textContent = 'Save';
+    if (error) { sfCheckOverlap(); showError('sf-error', 'Could not save: ' + error.message); return; }
+    await loadTimetable();
+    showScreen('timetable');
+  }
+
+  async function deleteSubject() {
+    if (!editingSubject) return;
+    if (!confirm('Delete this session?')) return;
+    const res = await sb.from('subjects').delete().eq('id', editingSubject.id).select();
+    let error = res.error;
+    if (!error && (!res.data || res.data.length === 0)) error = { message: 'Nothing was deleted. You may not have permission.' };
+    if (error) { showError('sf-error', 'Could not delete: ' + error.message); return; }
+    await loadTimetable();
+    showScreen('timetable');
+  }
+
+  // ---------- CHILD SIDE ----------
+  const KIDS_KEY = 'penrov_children';
+  const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  let childHome = null;   // { code, child, subjects, logs }
+  let clSubject = null;
+  let childTicker = null;
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function localDateStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+
+  // Children linked on this device (so they never retype a code)
+  function loadKids() {
+    try {
+      const a = JSON.parse(localStorage.getItem(KIDS_KEY) || '[]');
+      return Array.isArray(a) ? a.filter(k => k && /^[A-Z0-9]{6}$/.test(k.code) && typeof k.name === 'string') : [];
+    } catch (e) { return []; }
+  }
+  function saveKids(a) { try { localStorage.setItem(KIDS_KEY, JSON.stringify(a)); } catch (e) {} }
+  function rememberKid(code, name) {
+    const a = loadKids().filter(k => k.code !== code);
+    a.push({ code, name: String(name).slice(0, 40) });
+    saveKids(a);
+  }
+  function forgetKid(code) { saveKids(loadKids().filter(k => k.code !== code)); renderFrontKids(); }
+
+  function renderFrontKids() {
+    clearError('front-error');
+    const kids = loadKids();
+    const box = document.getElementById('front-children');
+    const list = document.getElementById('front-children-list');
+    list.innerHTML = '';
+    if (kids.length === 0) { box.style.display = 'none'; return; }
+    kids.forEach(k => {
+      const row = document.createElement('div');
+      row.className = 'kid-row';
+      const go = document.createElement('button');
+      go.className = 'kid-btn';
+      go.textContent = k.name;
+      go.onclick = () => openChildHome(k.code, 'front-error');
+      const x = document.createElement('button');
+      x.className = 'kid-x';
+      x.setAttribute('aria-label', 'Remove ' + k.name + ' from this device');
+      x.innerHTML = '&times;';
+      x.onclick = () => { if (confirm('Remove ' + k.name + ' from this device? Their code will still work.')) forgetKid(k.code); };
+      row.appendChild(go); row.appendChild(x);
+      list.appendChild(row);
+    });
+    box.style.display = 'block';
+  }
+
+  async function fetchChildSchedule(code) {
+    const { data, error } = await sb.rpc('get_child_schedule', { code_input: code, date_input: localDateStr() });
+    if (error) return { error: error.message };
+    if (!data) return { notFound: true };
+    return { data };
+  }
+
+  async function openChildHome(code, errElId) {
+    code = String(code).trim().toUpperCase();
+    const res = await fetchChildSchedule(code);
+    if (res.error) { showError(errElId, 'Could not load your reading screen: ' + res.error); return false; }
+    if (res.notFound) {
+      showError(errElId, "That code doesn't match anyone. Check it and try again.");
+      if (errElId === 'front-error') {
+        const keep = document.getElementById('front-error').textContent;
+        forgetKid(code);
+        showError('front-error', keep);
+      }
+      return false;
+    }
+    childHome = { code, child: res.data.child, subjects: res.data.subjects || [], logs: res.data.logs || [] };
+    currentChildCode = code;
+    rememberKid(code, res.data.child.name);
+    renderChildHome();
+    showScreen('child-home');
+    startChildTicker();
+    maybeShowChildNotifBanner();
+    syncChildSubscriptionQuietly();
+    return true;
+  }
+
+  function leaveChildHome() {
+    currentChildCode = null;
+    showScreen('front');
+  }
+
+  async function refreshChildHome(showFeedback) {
+    if (!childHome) return;
+    const res = await fetchChildSchedule(childHome.code);
+    if (res.data) {
+      childHome.child = res.data.child;
+      childHome.subjects = res.data.subjects || [];
+      childHome.logs = res.data.logs || [];
+      renderChildHome();
+      if (showFeedback) showFlash('Up to date.');
+    } else if (showFeedback) {
+      showFlash(res.error ? 'Could not refresh: ' + res.error : 'This profile is no longer available.');
+    }
+  }
+
+  function onChildHome() {
+    return document.getElementById('screen-child-home').classList.contains('active');
+  }
+
+  function startChildTicker() {
+    if (childTicker) return;
+    // keeps now / next / write-it-up fresh while the screen stays open
+    childTicker = setInterval(() => { if (onChildHome()) renderChildHome(); }, 30000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && onChildHome()) refreshChildHome(false); });
+  }
+
+  let flashTimer = null;
+  function showFlash(msg) {
+    const el = document.getElementById('ch-flash');
+    el.textContent = msg;
+    el.style.display = 'block';
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(() => { el.style.display = 'none'; }, 3500);
+  }
+
+  function timeRange(s) {
+    const st = s.start_time.slice(0, 5);
+    return formatTime(st) + ' – ' + formatTime(addMinutes(st, s.duration_minutes));
+  }
+
+  function renderChildHome() {
+    if (!childHome) return;
+    const now = new Date();
+    const today = now.getDay();               // 0 = Sunday, matches the timetable
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+
+    document.getElementById('ch-title').textContent = 'Hi, ' + childHome.child.name + '!';
+    document.getElementById('ch-date').textContent = DAY_NAMES[today] + ', ' + now.getDate() + ' ' + MONTH_NAMES[now.getMonth()];
+
+    const logged = new Map(childHome.logs.map(l => [String(l.subject_id), l.summary]));
+    const todays = childHome.subjects
+      .filter(s => s.day_of_week === today)
+      .sort((a, b) => a.start_time.localeCompare(b.start_time));
+
+    const list = document.getElementById('ch-list');
+    const progress = document.getElementById('ch-progress');
+    list.innerHTML = '';
+
+    if (childHome.subjects.length === 0) {
+      progress.textContent = '';
+      list.innerHTML = '<div class="empty-note"><strong>No timetable yet</strong><p class="sub">Ask your parent to add your reading subjects.</p></div>';
+      return;
+    }
+
+    if (todays.length === 0) {
+      progress.textContent = '';
+      let nextLine = '';
+      for (let i = 1; i <= 7; i++) {
+        const d = (today + i) % 7;
+        const first = childHome.subjects.filter(s => s.day_of_week === d).sort((a, b) => a.start_time.localeCompare(b.start_time))[0];
+        if (first) { nextLine = 'Next reading: ' + (i === 1 ? 'tomorrow' : DAY_NAMES[d]) + ' at ' + formatTime(first.start_time.slice(0, 5)) + '.'; break; }
+      }
+      list.innerHTML = '<div class="empty-note"><strong>Nothing planned for today</strong><p class="sub">Enjoy your free day!' + (nextLine ? ' ' + esc(nextLine) : '') + '</p></div>';
+      return;
+    }
+
+    // work out each session's state
+    let nextAssigned = false;
+    const items = todays.map(s => {
+      const st = toMinutes(s.start_time.slice(0, 5));
+      const en = st + s.duration_minutes;
+      let state;
+      if (logged.has(String(s.id))) state = 'done';
+      else if (nowMin >= en) state = 'ready';
+      else if (nowMin >= st) state = 'now';
+      else if (!nextAssigned) { state = 'next'; nextAssigned = true; }
+      else state = 'later';
+      return { s, state, end: en };
+    });
+
+    const doneCount = items.filter(i => i.state === 'done').length;
+    progress.textContent = doneCount === items.length
+      ? 'All done for today. Great job!'
+      : doneCount + ' of ' + items.length + ' done today';
+
+    const TAGS = { done: 'Done', now: 'Reading now', ready: 'Write it up', next: 'Up next', later: 'Later' };
+    items.forEach(({ s, state, end }) => {
+      const card = document.createElement('div');
+      card.className = 'c-card ' + state + ((state === 'done' || state === 'ready') ? ' tappable' : '');
+      let extra = '';
+      if (state === 'now') extra = '<div class="c-note">Come back here to write what you learned when this session ends at ' + formatTime(hhmm(end)) + '.</div>';
+      if (state === 'ready') extra = '<div class="c-cta">Tell us what you read &rsaquo;</div>';
+      if (state === 'done') {
+        const text = logged.get(String(s.id)) || '';
+        extra = '<div class="c-snippet">' + esc(text.length > 90 ? text.slice(0, 90) + '…' : text) + '</div><div class="c-note">Tap to edit</div>';
+      }
+      card.innerHTML =
+        '<span class="c-dot" style="background:' + colorFor(s.name) + '"></span>' +
+        '<div class="c-main"><div class="c-name">' + esc(s.name) + '</div>' +
+        '<div class="c-time">' + esc(timeRange(s)) + '</div>' + extra + '</div>' +
+        '<span class="c-tag ' + state + '">' + TAGS[state] + '</span>';
+      if (state === 'done' || state === 'ready') card.onclick = () => openChildLog(s.id);
+      list.appendChild(card);
+    });
+  }
+
+  // ---- writing the summary ----
+  function openChildLog(subjectId) {
+    if (!childHome) return;
+    clSubject = childHome.subjects.find(s => String(s.id) === String(subjectId));
+    if (!clSubject) return;
+    clearError('cl-error');
+    const existing = childHome.logs.find(l => String(l.subject_id) === String(clSubject.id));
+    document.getElementById('cl-sub').textContent = clSubject.name + ' · ' + timeRange(clSubject);
+    document.getElementById('cl-text').value = existing ? existing.summary : '';
+    document.getElementById('cl-save').textContent = existing ? 'Update' : 'Save';
+    clUpdateCount();
+    showScreen('child-log');
+  }
+
+  function clUpdateCount() {
+    const n = document.getElementById('cl-text').value.trim().length;
+    document.getElementById('cl-count').textContent = n === 0 ? '' : (n < 10 ? 'Keep going, a few more words.' : 'Looks good.');
+  }
+
+  async function saveChildLog() {
+    clearError('cl-error');
+    if (!childHome || !clSubject) return;
+    const text = document.getElementById('cl-text').value.trim();
+    if (text.length < 10) { showError('cl-error', 'Write a little more about what you read, at least a short sentence.'); return; }
+    const btn = document.getElementById('cl-save');
+    const label = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Saving...';
+    const { error } = await sb.rpc('save_child_log', {
+      code_input: childHome.code,
+      subject_id_input: String(clSubject.id),
+      date_input: localDateStr(),
+      summary_input: text
+    });
+    btn.disabled = false; btn.textContent = label;
+    if (error) { showError('cl-error', 'Could not save: ' + error.message); return; }
+
+    const fresh = await fetchChildSchedule(childHome.code);
+    if (fresh.data) {
+      childHome.subjects = fresh.data.subjects || [];
+      childHome.logs = fresh.data.logs || [];
+    } else {
+      childHome.logs = childHome.logs.filter(l => String(l.subject_id) !== String(clSubject.id)).concat([{ subject_id: clSubject.id, summary: text }]);
+    }
+    renderChildHome();
+    showScreen('child-home');
+    showFlash('Saved. Well done!');
+  }
+
+  // On load, check if already logged in
+  (async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      const { data: parentRow } = await sb
+        .from('parents')
+        .select('family_id, is_primary')
+        .eq('id', session.user.id)
+        .single();
+      if (parentRow) {
+        currentFamilyId = parentRow.family_id;
+        isPrimaryParent = parentRow.is_primary;
+        renderChildren();
+        loadFamilyCode();
+        updateAddChildVisibility();
+    maybeShowParentNotifBanner();
+        showScreen('dashboard');
+      }
+    }
+  })();
+
+  renderFrontKids();
+</script>
+</body>
+</html>
