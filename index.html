@@ -106,6 +106,15 @@
   .kid-row { display: flex; gap: 8px; align-items: stretch; }
   .kid-btn { flex: 1; background: #fff; color: var(--navy); border: 1.5px solid var(--indigo); border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700; text-align: left; }
   .kid-x { background: transparent; color: var(--muted); font-size: 20px; padding: 0 10px; }
+  .pl-day { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 0.6px; text-transform: uppercase; margin: 14px 0 6px; }
+  .pl-card { background: #fff; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+  .pl-card .pl-subj { font-weight: 600; font-size: 14px; }
+  .pl-card .pl-text { font-size: 13px; margin-top: 6px; background: var(--lavender); border-radius: 10px; padding: 8px 10px; word-wrap: break-word; white-space: pre-wrap; }
+  .pl-card textarea { margin-top: 8px; }
+  .pl-card .pl-send { margin-top: 6px; background: var(--indigo); color: #fff; border-radius: 999px; padding: 8px 16px; font-size: 12px; font-weight: 700; }
+  .pl-card .pl-saved { font-size: 11px; color: var(--muted); margin-left: 8px; }
+  .c-comment { font-size: 13px; margin-top: 8px; background: #E9F7EF; border-radius: 10px; padding: 8px 10px; word-wrap: break-word; }
+  .child-card .prog { font-size: 12px; font-weight: 700; color: var(--indigo); }
   .empty-note { background: #fff; border-radius: 14px; padding: 18px 16px; text-align: center; font-size: 14px; }
   .empty-note .sub { margin-top: 6px; }
 </style>
@@ -125,7 +134,7 @@
     </div>
     <div class="error" id="front-error"></div>
     <button class="btn" onclick="showScreen('signup')">Get started</button>
-    <button class="btn-outline" onclick="showScreen('login')">I'm a co-parent, or using a new device</button>
+    <button class="btn-outline" onclick="showScreen('login')">Join my family / restore access</button>
     <button class="btn-outline" onclick="showScreen('child-entry')">I'm a child with a code</button>
   </div>
 
@@ -143,9 +152,10 @@
   <div class="screen" id="screen-login">
     <div class="topbar"><span class="back" onclick="showScreen('front')">&larr; Back</span></div>
     <h1>Join your family</h1>
-    <p class="sub">Enter the family code &mdash; the other parent can find it on their dashboard.</p>
+    <p class="sub">Enter the family code. The main parent can find it on their dashboard, under &ldquo;Share your family code&rdquo;.</p>
     <div class="error" id="login-error"></div>
     <div class="field"><label>Family code</label><input id="login-code" type="text" maxlength="6" autocapitalize="characters" autocomplete="off" style="letter-spacing:4px;text-transform:uppercase;font-size:18px;text-align:center" placeholder="------"></div>
+    <div class="field"><label>Recovery word <span style="font-weight:400">(main parent only, leave empty if you are the co-parent)</span></label><input id="login-word" type="text" autocomplete="off" autocapitalize="none" placeholder="The word you chose on your dashboard"></div>
     <button class="btn" id="login-btn" onclick="handleLogin()">Continue</button>
   </div>
 
@@ -172,6 +182,7 @@
       <div class="notif-text"><strong>Get reading reminders</strong><span>We'll ping you when it's time to read.</span></div>
       <button class="notif-btn" onclick="enableChildNotifications()">Turn on</button>
     </div>
+    <div id="ch-comments"></div>
     <p class="sub" id="ch-progress"></p>
     <div class="c-list" id="ch-list"></div>
   </div>
@@ -195,7 +206,19 @@
       <h1 style="flex:1">Your children</h1>
       <span class="back" onclick="handleLogout()">Log out</span>
     </div>
-    <p class="sub" id="dashboard-family-code"></p>
+    <div id="share-card" class="code-box" style="display:none;margin-bottom:12px">
+      <p class="sub"><strong>Share your family code</strong><br>Give this to the other parent so they can join and see the same children.</p>
+      <div class="code" id="dashboard-family-code">------</div>
+      <button class="notif-btn" onclick="shareFamilyCode()">Share code</button>
+      <p class="sub" id="share-note" style="margin-top:6px"></p>
+    </div>
+    <div id="recovery-card" class="warn-card" style="display:none;margin-bottom:12px">
+      <strong>Set your recovery word</strong>
+      If you log out or change phones, this word brings you back as the main parent. Pick something you will remember (at least 6 letters).
+      <div class="error" id="recovery-error"></div>
+      <input id="recovery-word" type="text" autocomplete="off" autocapitalize="none" placeholder="e.g. mangotree" style="margin-top:8px">
+      <button class="suggest" onclick="saveRecoveryWord()">Save recovery word</button>
+    </div>
     <div id="parent-notif-banner" class="notif-card" style="display:none">
       <div class="notif-text"><strong>Get reading-time alerts</strong><span>One ping a day, when your child's first session starts.</span></div>
       <button class="notif-btn" onclick="enableParentNotifications()">Turn on</button>
@@ -203,6 +226,24 @@
     <div id="children-list"></div>
     <button class="btn" id="add-child-btn" onclick="showScreen('add-child')">+ Add child</button>
     <p class="sub" id="coparent-note" style="display:none;text-align:center">Only the parent who created this family can add children.</p>
+  </div>
+
+  <!-- CHILD DETAIL (parent) -->
+  <div class="screen" id="screen-child-detail">
+    <div class="topbar"><span class="back" onclick="backToDashboard()">&larr; Back</span></div>
+    <h1 id="cd-title">Child</h1>
+    <p class="sub" id="cd-sub"></p>
+    <button class="btn" onclick="openTimetable(cdChild.id, cdChild.name)">Timetable</button>
+    <button class="btn-outline" onclick="openParentLogs()">Reading log and comments</button>
+  </div>
+
+  <!-- PARENT: READING LOG -->
+  <div class="screen" id="screen-parent-logs">
+    <div class="topbar"><span class="back" onclick="showScreen('child-detail')">&larr; Back</span><span class="back" onclick="openParentLogs()">Refresh</span></div>
+    <h1 id="pl-title">Reading log</h1>
+    <p class="sub">What your child wrote in the last 30 days. Add a comment and they will see it on their screen.</p>
+    <div class="error" id="pl-error"></div>
+    <div id="pl-list"></div>
   </div>
 
   <!-- ADD CHILD -->
@@ -509,7 +550,7 @@
       return;
     }
 
-    const familyId = lookup[0].id;
+    let familyId = lookup[0].id;
 
     const { data: authData, error: authError } = await sb.auth.signInAnonymously();
     if (authError) {
@@ -518,22 +559,37 @@
       return;
     }
 
-    const { data: existingParent } = await sb
-      .from('parents')
-      .select('id, is_primary')
-      .eq('id', authData.user.id)
-      .maybeSingle();
-
-    if (existingParent) {
-      isPrimaryParent = existingParent.is_primary;
+    const word = document.getElementById('login-word').value.trim();
+    if (word) {
+      // main parent restoring access on a new phone or after logging out
+      const { data: restoredFamily, error: restoreError } = await sb.rpc('restore_primary', { code_input: code, word_input: word });
+      if (restoreError || !restoredFamily) {
+        await sb.auth.signOut();
+        showError('login-error', 'The family code or recovery word is not right.');
+        btn.disabled = false; btn.textContent = 'Continue';
+        return;
+      }
+      familyId = restoredFamily;
+      isPrimaryParent = true;
     } else {
-      const { data: inserted } = await sb
+      const { data: existingParent } = await sb
         .from('parents')
-        .insert({ id: authData.user.id, family_id: familyId, name: 'Parent', is_primary: false })
-        .select('is_primary')
-        .single();
-      isPrimaryParent = inserted ? inserted.is_primary : false;
+        .select('id, is_primary')
+        .eq('id', authData.user.id)
+        .maybeSingle();
+
+      if (existingParent) {
+        isPrimaryParent = existingParent.is_primary;
+      } else {
+        const { data: inserted } = await sb
+          .from('parents')
+          .insert({ id: authData.user.id, family_id: familyId, name: 'Parent', is_primary: false })
+          .select('is_primary')
+          .single();
+        isPrimaryParent = inserted ? inserted.is_primary : false;
+      }
     }
+    document.getElementById('login-word').value = '';
 
     btn.disabled = false; btn.textContent = 'Continue';
     currentFamilyId = familyId;
@@ -545,6 +601,17 @@
   }
 
   async function handleLogout() {
+    if (isPrimaryParent) {
+      const { data: has } = await sb.rpc('has_recovery_word');
+      if (has === false) {
+        alert('Before you log out, set your recovery word on the dashboard. Without it you cannot get back in as the main parent.');
+        document.getElementById('recovery-card').style.display = 'block';
+        return;
+      }
+      if (!confirm('Log out? To get back in as the main parent you will need your family code and recovery word.')) return;
+    } else {
+      if (!confirm('Log out? You can join again later with the family code.')) return;
+    }
     await sb.auth.signOut();
     currentFamilyId = null;
     isPrimaryParent = true;
@@ -636,18 +703,57 @@
     showScreen('add-child');
   }
 
+  let familyCodeText = '';
   async function loadFamilyCode() {
     const { data, error } = await sb
       .from('families')
       .select('invite_code')
       .eq('id', currentFamilyId)
       .single();
-    const el = document.getElementById('dashboard-family-code');
+    const card = document.getElementById('share-card');
     if (!error && data) {
-      el.textContent = 'Family code: ' + data.invite_code + ' (for a co-parent, or a new device)';
+      familyCodeText = data.invite_code;
+      document.getElementById('dashboard-family-code').textContent = data.invite_code;
+      document.getElementById('share-note').textContent = '';
+      card.style.display = 'block';
     } else {
-      el.textContent = '';
+      familyCodeText = '';
+      card.style.display = 'none';
     }
+    checkRecoveryCard();
+  }
+
+  async function shareFamilyCode() {
+    if (!familyCodeText) return;
+    const msg = 'Join my family on PENROV. Open ' + location.origin + location.pathname.replace(/index\.html$/, '') + ' , tap "Join my family / restore access" and enter this family code: ' + familyCodeText;
+    try {
+      if (navigator.share) { await navigator.share({ title: 'PENROV family code', text: msg }); return; }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    try {
+      await navigator.clipboard.writeText(msg);
+      document.getElementById('share-note').textContent = 'Copied. Paste it into a message to the other parent.';
+    } catch (e) {
+      document.getElementById('share-note').textContent = 'Code: ' + familyCodeText;
+    }
+  }
+
+  async function checkRecoveryCard() {
+    const card = document.getElementById('recovery-card');
+    card.style.display = 'none';
+    if (!isPrimaryParent) return;
+    const { data, error } = await sb.rpc('has_recovery_word');
+    if (!error && data === false) card.style.display = 'block';
+  }
+
+  async function saveRecoveryWord() {
+    clearError('recovery-error');
+    const w = document.getElementById('recovery-word').value.trim();
+    if (w.length < 6) { showError('recovery-error', 'Use at least 6 letters or numbers.'); return; }
+    const { error } = await sb.rpc('set_recovery_word', { word_input: w });
+    if (error) { showError('recovery-error', error.message); return; }
+    document.getElementById('recovery-word').value = '';
+    document.getElementById('recovery-card').style.display = 'none';
+    alert('Saved. Your recovery word is: ' + w + '\n\nWrite it down somewhere safe. You will need it with your family code if you log out or change phone.');
   }
 
   async function renderChildren() {
@@ -663,8 +769,17 @@
       list.innerHTML = '<p class="sub" style="text-align:center;padding:20px 0">No children added yet.</p>';
       return;
     }
+    let overview = [];
+    try {
+      const ov = await sb.rpc('parent_family_overview', { date_input: localDateStr() });
+      if (!ov.error && Array.isArray(ov.data)) overview = ov.data;
+    } catch (e) {}
+    const prog = new Map(overview.map(o => [String(o.child_id), o]));
     data.forEach(child => {
       const initial = child.name.charAt(0).toUpperCase();
+      const o = prog.get(String(child.id));
+      let status = '';
+      if (o) status = o.planned === 0 ? 'Nothing planned today' : (o.done + ' of ' + o.planned + ' read today');
       const div = document.createElement('div');
       div.className = 'child-card';
       div.style.marginBottom = '8px';
@@ -674,11 +789,80 @@
         <div class="info">
           <div class="n">${esc(child.name)}, ${esc(child.age)}</div>
           <div class="a">Code: ${esc(child.join_code)}</div>
+          ${status ? '<div class="prog">' + esc(status) + '</div>' : ''}
         </div>
-        <span class="sub">Timetable &rsaquo;</span>`;
-      div.onclick = () => openTimetable(child.id, child.name);
+        <span class="sub">Open &rsaquo;</span>`;
+      div.onclick = () => openChildDetail(child);
       list.appendChild(div);
     });
+  }
+
+  let cdChild = null;
+  function openChildDetail(child) {
+    cdChild = { id: child.id, name: child.name, code: child.join_code, age: child.age };
+    document.getElementById('cd-title').textContent = child.name;
+    document.getElementById('cd-sub').textContent = 'Age ' + child.age + ' · Child code: ' + child.join_code;
+    showScreen('child-detail');
+  }
+
+  async function openParentLogs() {
+    if (!cdChild) return;
+    clearError('pl-error');
+    document.getElementById('pl-title').textContent = cdChild.name + "'s reading log";
+    const box = document.getElementById('pl-list');
+    box.innerHTML = '<p class="sub">Loading...</p>';
+    showScreen('parent-logs');
+    const { data, error } = await sb.rpc('parent_get_logs', { child_id_input: String(cdChild.id), days_input: 30 });
+    if (error) { box.innerHTML = ''; showError('pl-error', 'Could not load: ' + error.message); return; }
+    if (!data || data.length === 0) {
+      box.innerHTML = '<div class="empty-note"><strong>Nothing written yet</strong><p class="sub">When ' + esc(cdChild.name) + ' writes about a reading session, it will show up here.</p></div>';
+      return;
+    }
+    box.innerHTML = '';
+    let lastDate = null;
+    data.forEach((row, idx) => {
+      if (row.date !== lastDate) {
+        lastDate = row.date;
+        const h = document.createElement('div');
+        h.className = 'pl-day';
+        h.textContent = prettyDate(row.date);
+        box.appendChild(h);
+      }
+      const card = document.createElement('div');
+      card.className = 'pl-card';
+      card.innerHTML =
+        '<div class="pl-subj">' + esc(row.subject) + '</div>' +
+        '<div class="pl-text">' + esc(row.summary) + '</div>' +
+        '<textarea rows="2" maxlength="500" placeholder="Write a comment for ' + esc(cdChild.name) + '...">' + esc(row.comment || '') + '</textarea>' +
+        '<div><button class="pl-send">' + (row.comment ? 'Update comment' : 'Send comment') + '</button><span class="pl-saved"></span></div>';
+      const ta = card.querySelector('textarea');
+      const btn = card.querySelector('.pl-send');
+      const note = card.querySelector('.pl-saved');
+      btn.onclick = async () => {
+        btn.disabled = true;
+        const r = await sb.rpc('parent_save_comment', {
+          child_id_input: String(cdChild.id),
+          subject_id_input: String(row.subject_id),
+          date_input: row.date,
+          comment_input: ta.value
+        });
+        btn.disabled = false;
+        if (r.error) { note.textContent = 'Could not save'; return; }
+        note.textContent = ta.value.trim() ? 'Sent' : 'Comment removed';
+        btn.textContent = ta.value.trim() ? 'Update comment' : 'Send comment';
+      };
+      box.appendChild(card);
+    });
+  }
+
+  function prettyDate(iso) {
+    const p = String(iso).split('-').map(Number);
+    const d = new Date(p[0], p[1] - 1, p[2]);
+    const t = new Date(); t.setHours(0, 0, 0, 0);
+    const diff = Math.round((t - d) / 86400000);
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Yesterday';
+    return DAY_NAMES[d.getDay()] + ' ' + d.getDate() + ' ' + MONTH_NAMES[d.getMonth()];
   }
 
   // ---------- TIMETABLE ----------
@@ -1034,7 +1218,7 @@
       }
       return false;
     }
-    childHome = { code, child: res.data.child, subjects: res.data.subjects || [], logs: res.data.logs || [] };
+    childHome = { code, child: res.data.child, subjects: res.data.subjects || [], logs: res.data.logs || [], comments: res.data.comments || [] };
     currentChildCode = code;
     rememberKid(code, res.data.child.name);
     renderChildHome();
@@ -1057,6 +1241,7 @@
       childHome.child = res.data.child;
       childHome.subjects = res.data.subjects || [];
       childHome.logs = res.data.logs || [];
+      childHome.comments = res.data.comments || [];
       renderChildHome();
       if (showFeedback) showFlash('Up to date.');
     } else if (showFeedback) {
@@ -1098,7 +1283,18 @@
     document.getElementById('ch-title').textContent = 'Hi, ' + childHome.child.name + '!';
     document.getElementById('ch-date').textContent = DAY_NAMES[today] + ', ' + now.getDate() + ' ' + MONTH_NAMES[now.getMonth()];
 
+    const cbox = document.getElementById('ch-comments');
+    cbox.innerHTML = '';
+    (childHome.comments || []).slice(0, 3).forEach(c => {
+      const d = document.createElement('div');
+      d.className = 'c-comment';
+      d.style.marginBottom = '8px';
+      d.innerHTML = '<strong>From your parent</strong> (' + esc(c.subject) + ', ' + esc(prettyDate(c.date)) + '): ' + esc(c.comment);
+      cbox.appendChild(d);
+    });
+
     const logged = new Map(childHome.logs.map(l => [String(l.subject_id), l.summary]));
+    const commented = new Map(childHome.logs.filter(l => l.comment).map(l => [String(l.subject_id), l.comment]));
     const todays = childHome.subjects
       .filter(s => s.day_of_week === today)
       .sort((a, b) => a.start_time.localeCompare(b.start_time));
@@ -1153,7 +1349,9 @@
       if (state === 'ready') extra = '<div class="c-cta">Tell us what you read &rsaquo;</div>';
       if (state === 'done') {
         const text = logged.get(String(s.id)) || '';
-        extra = '<div class="c-snippet">' + esc(text.length > 90 ? text.slice(0, 90) + '…' : text) + '</div><div class="c-note">Tap to edit</div>';
+        extra = '<div class="c-snippet">' + esc(text.length > 90 ? text.slice(0, 90) + '…' : text) + '</div>' +
+          (commented.has(String(s.id)) ? '<div class="c-comment"><strong>Your parent says:</strong> ' + esc(commented.get(String(s.id))) + '</div>' : '') +
+          '<div class="c-note">Tap to edit</div>';
       }
       card.innerHTML =
         '<span class="c-dot" style="background:' + colorFor(s.name) + '"></span>' +
@@ -1205,6 +1403,7 @@
     if (fresh.data) {
       childHome.subjects = fresh.data.subjects || [];
       childHome.logs = fresh.data.logs || [];
+      childHome.comments = fresh.data.comments || [];
     } else {
       childHome.logs = childHome.logs.filter(l => String(l.subject_id) !== String(clSubject.id)).concat([{ subject_id: clSubject.id, summary: text }]);
     }
