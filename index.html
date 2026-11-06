@@ -282,8 +282,8 @@
       <button class="notif-btn" onclick="enableParentNotifications()">Turn on</button>
     </div>
     <div id="home-tip" class="notif-card" style="display:none;margin-bottom:12px">
-      <div class="notif-text"><strong>Keep PENROV on your home screen</strong><span>Android Chrome: menu (three dots) &rarr; Add to Home screen. iPhone Safari: Share &rarr; Add to Home Screen. Then open it from the icon.</span></div>
-      <button class="notif-btn" onclick="dismissHomeTip()">Got it</button>
+      <div class="notif-text"><strong>Keep PENROV on your home screen</strong><span id="home-tip-text">Android Chrome: menu (three dots) &rarr; Install app, or Add to Home screen. iPhone Safari: Share &rarr; Add to Home Screen. Then open it from the icon.</span></div>
+      <button class="notif-btn" id="home-tip-btn" onclick="homeTipAction()">Got it</button>
     </div>
     <div id="children-list"></div>
     <button class="btn" id="add-child-btn" onclick="showScreen('add-child')">+ Add child</button>
@@ -302,7 +302,7 @@
     <button class="btn-outline" onclick="openParentLogs()">Reading log and comments</button>
     <button class="btn-outline" onclick="openPrint()">Printable timetable (PDF)</button>
     <button class="btn-outline" onclick="openAgreement()">Reward agreement</button>
-    <button class="danger-link" onclick="deleteChildProfile()">Delete this child and all their data</button>
+    <button class="danger-link" id="cd-delete" onclick="deleteChildProfile()">Delete this child and all their data</button>
   </div>
 
   <!-- AGREEMENT -->
@@ -1670,6 +1670,7 @@
     document.getElementById('cd-sub').textContent = 'Age ' + child.age + ' · Child code: ' + cdChild.code;
     document.getElementById('cd-progress').innerHTML = '<p class="sub">Loading...</p>';
     document.getElementById('cd-agreement').innerHTML = '';
+    document.getElementById('cd-delete').style.display = isPrimaryParent ? '' : 'none';
     showScreen('child-detail');
     await loadChildProfile();
   }
@@ -1854,7 +1855,7 @@
   // PRIVACY + HOME SCREEN TIP
   // =====================================================
   let privacyFrom = 'front';
-  const SUPPORT_EMAIL = '';   // add a support email here if you want one shown on the privacy page
+  const SUPPORT_EMAIL = 'blessingsvestule@gmail.com';   // add a support email here if you want one shown on the privacy page
   function openPrivacy(from) {
     privacyFrom = from || 'front';
     const contact = SUPPORT_EMAIL
@@ -1873,14 +1874,47 @@
   }
   function privacyBack() { showScreen(privacyFrom || 'front'); }
 
+  const TIP_KEY = 'penrov_tip_v2';
+  let deferredInstall = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstall = e;
+    updateHomeTipButton();
+  });
+  window.addEventListener('appinstalled', () => { deferredInstall = null; dismissHomeTip(); });
+
+  function updateHomeTipButton() {
+    const btn = document.getElementById('home-tip-btn');
+    const txt = document.getElementById('home-tip-text');
+    if (!btn) return;
+    if (deferredInstall) {
+      btn.textContent = 'Add';
+      txt.textContent = 'Tap Add to put PENROV on your home screen, then open it from the icon.';
+    } else {
+      btn.textContent = 'Got it';
+    }
+  }
+  async function homeTipAction() {
+    if (deferredInstall) {
+      try {
+        deferredInstall.prompt();
+        await deferredInstall.userChoice;
+      } catch (e) {}
+      deferredInstall = null;
+      dismissHomeTip();
+    } else {
+      dismissHomeTip();
+    }
+  }
   function maybeShowHomeTip() {
     let dismissed = false;
-    try { dismissed = localStorage.getItem('penrov_tip_dismissed') === '1'; } catch (e) {}
+    try { dismissed = localStorage.getItem(TIP_KEY) === '1'; } catch (e) {}
     const standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
     document.getElementById('home-tip').style.display = (dismissed || standalone) ? 'none' : 'flex';
+    updateHomeTipButton();
   }
   function dismissHomeTip() {
-    try { localStorage.setItem('penrov_tip_dismissed', '1'); } catch (e) {}
+    try { localStorage.setItem(TIP_KEY, '1'); } catch (e) {}
     document.getElementById('home-tip').style.display = 'none';
   }
 
