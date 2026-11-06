@@ -115,9 +115,65 @@
   .pl-card .pl-saved { font-size: 11px; color: var(--muted); margin-left: 8px; }
   .c-comment { font-size: 13px; margin-top: 8px; background: #E9F7EF; border-radius: 10px; padding: 8px 10px; word-wrap: break-word; }
   .child-card .prog { font-size: 12px; font-weight: 700; color: var(--indigo); }
+
+  .prog-card { background: #fff; border-radius: 14px; padding: 14px; }
+  .prog-card h3 { font-size: 14px; margin-bottom: 6px; }
+  .prog-visual { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .prog-stage { font-size: 14px; font-weight: 700; color: var(--indigo); }
+  .prog-next { font-size: 12px; color: var(--muted); text-align: center; }
+  .tiles { display: flex; gap: 8px; margin-top: 10px; }
+  .tile { flex: 1; background: var(--lavender); border-radius: 10px; padding: 8px 6px; text-align: center; }
+  .tile b { display: block; font-size: 18px; color: var(--navy); }
+  .tile span { font-size: 11px; color: var(--muted); }
+  .agree-card { background: #FFF6DB; border: 1.5px solid var(--amber); border-radius: 14px; padding: 12px 14px; font-size: 13px; }
+  .agree-card strong { display: block; margin-bottom: 4px; }
+  .theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .theme-opt { background: #fff; border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 4px; font-size: 12px; font-weight: 600; text-align: center; color: var(--navy); }
+  .theme-opt.sel { border-color: var(--indigo); box-shadow: 0 0 0 2px var(--indigo) inset; }
+  .theme-opt .sw { display: block; height: 14px; border-radius: 7px; margin: 0 auto 6px; width: 70%; }
+  .chk { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+  .chk input { width: 20px; height: 20px; margin-top: 2px; flex: none; }
+  .policy { background: #fff; border-radius: 12px; padding: 14px; font-size: 13px; line-height: 1.5; }
+  .policy h3 { font-size: 14px; margin: 12px 0 4px; }
+  .danger-link { color: #B3261E; font-size: 13px; text-decoration: underline; background: none; text-align: center; padding: 8px; }
+  #poster { width: 100%; border-radius: 12px; padding: 14px; background: var(--pbg); color: var(--pink); border: 3px solid var(--pacc); }
+  #poster .p-title { font-size: 22px; font-weight: 800; text-align: center; color: var(--pacc); line-height: 1.15; }
+  #poster .p-deco { text-align: center; font-size: 18px; letter-spacing: 6px; margin: 4px 0 8px; }
+  #poster .p-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  #poster .p-day { background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid rgba(0,0,0,0.08); min-height: 150px; }
+  #poster .p-day h4 { background: var(--pacc); color: #fff; font-size: 9px; text-align: center; padding: 4px 0; letter-spacing: 0.4px; }
+  #poster .p-sess { padding: 4px 4px; font-size: 8px; border-bottom: 1px dashed rgba(0,0,0,0.12); }
+  #poster .p-sess b { display: block; font-size: 9px; color: var(--pink); }
+  #poster .p-free { padding: 6px 4px; font-size: 8px; opacity: 0.55; text-align: center; }
+  #poster .p-foot { text-align: center; font-size: 9px; margin-top: 8px; opacity: 0.7; }
+  #poster.teen .p-day { border-radius: 2px; }
+  #poster.teen .p-title { text-align: left; font-weight: 700; letter-spacing: -0.3px; }
+  @page { size: A4 landscape; margin: 10mm; }
+  @media print {
+    body { background: #fff !important; padding: 0; }
+    .wrap { max-width: none; padding: 0; }
+    .screen:not(#screen-print) { display: none !important; }
+    #screen-print .no-print { display: none !important; }
+    #poster { border-radius: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    #poster * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    #poster .p-title { font-size: 34px; }
+    #poster .p-deco { font-size: 26px; }
+    #poster .p-day { min-height: 400px; }
+    #poster .p-day h4 { font-size: 13px; padding: 6px 0; }
+    #poster .p-sess { font-size: 12px; padding: 6px; }
+    #poster .p-sess b { font-size: 13px; }
+    #poster .p-free { font-size: 12px; }
+    #poster .p-foot { font-size: 12px; }
+  }
   .empty-note { background: #fff; border-radius: 14px; padding: 18px 16px; text-align: center; font-size: 14px; }
   .empty-note .sub { margin-top: 6px; }
 </style>
+  <link rel="icon" href="icons/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4A40C1">
 </head>
 <body>
 <div class="wrap">
@@ -136,6 +192,7 @@
     <button class="btn" onclick="showScreen('signup')">Get started</button>
     <button class="btn-outline" onclick="showScreen('login')">Join my family / restore access</button>
     <button class="btn-outline" onclick="showScreen('child-entry')">I'm a child with a code</button>
+    <button class="link-btn" style="align-self:center" onclick="openPrivacy('front')">Privacy</button>
   </div>
 
   <!-- CREATE FAMILY (first-time parent, no code involved) -->
@@ -183,6 +240,7 @@
       <button class="notif-btn" onclick="enableChildNotifications()">Turn on</button>
     </div>
     <div id="ch-comments"></div>
+    <div id="ch-extras"></div>
     <p class="sub" id="ch-progress"></p>
     <div class="c-list" id="ch-list"></div>
   </div>
@@ -223,8 +281,13 @@
       <div class="notif-text"><strong>Get reading-time alerts</strong><span>One ping a day, when your child's first session starts.</span></div>
       <button class="notif-btn" onclick="enableParentNotifications()">Turn on</button>
     </div>
+    <div id="home-tip" class="notif-card" style="display:none;margin-bottom:12px">
+      <div class="notif-text"><strong>Keep PENROV on your home screen</strong><span>Android Chrome: menu (three dots) &rarr; Add to Home screen. iPhone Safari: Share &rarr; Add to Home Screen. Then open it from the icon.</span></div>
+      <button class="notif-btn" onclick="dismissHomeTip()">Got it</button>
+    </div>
     <div id="children-list"></div>
     <button class="btn" id="add-child-btn" onclick="showScreen('add-child')">+ Add child</button>
+    <button class="link-btn" style="align-self:center" onclick="openPrivacy('dashboard')">Privacy</button>
     <p class="sub" id="coparent-note" style="display:none;text-align:center">Only the parent who created this family can add children.</p>
   </div>
 
@@ -233,8 +296,51 @@
     <div class="topbar"><span class="back" onclick="backToDashboard()">&larr; Back</span></div>
     <h1 id="cd-title">Child</h1>
     <p class="sub" id="cd-sub"></p>
+    <div id="cd-progress"></div>
+    <div id="cd-agreement"></div>
     <button class="btn" onclick="openTimetable(cdChild.id, cdChild.name)">Timetable</button>
     <button class="btn-outline" onclick="openParentLogs()">Reading log and comments</button>
+    <button class="btn-outline" onclick="openPrint()">Printable timetable (PDF)</button>
+    <button class="btn-outline" onclick="openAgreement()">Reward agreement</button>
+    <button class="danger-link" onclick="deleteChildProfile()">Delete this child and all their data</button>
+  </div>
+
+  <!-- AGREEMENT -->
+  <div class="screen" id="screen-agreement">
+    <div class="topbar"><span class="back" onclick="showScreen('child-detail')">&larr; Back</span></div>
+    <h1>Reward agreement</h1>
+    <p class="sub">An optional goal you and your child agree on, and the reward that goes with it. It is separate from the reading tracker.</p>
+    <div class="error" id="ag-error"></div>
+    <div class="field"><label>The goal</label><input id="ag-goal" type="text" maxlength="200" placeholder="e.g. Outstanding grades this term"></div>
+    <div class="field"><label>The reward</label><input id="ag-reward" type="text" maxlength="200" placeholder="e.g. A PS5"></div>
+    <div class="field"><label>When</label>
+      <select id="ag-when"><option value="End of term">End of term</option><option value="End of school year">End of school year</option></select>
+    </div>
+    <label class="chk"><input type="checkbox" id="ag-hidden"> <span>Hide this from my child (only parents see it)</span></label>
+    <button class="btn" onclick="saveAgreement()">Save</button>
+    <button class="btn-outline" onclick="clearAgreement()">Remove agreement</button>
+  </div>
+
+  <!-- PRINTABLE TIMETABLE -->
+  <div class="screen" id="screen-print">
+    <div class="topbar no-print"><span class="back" onclick="showScreen('child-detail')">&larr; Back</span></div>
+    <h1 class="no-print">Printable timetable</h1>
+    <p class="sub no-print">Pick a look, then tap <strong>Print / Save as PDF</strong>. On your phone choose &ldquo;Save as PDF&rdquo; as the printer.</p>
+    <div class="error no-print" id="pr-error"></div>
+    <div class="theme-grid no-print" id="pr-themes"></div>
+    <div class="field no-print"><label>Change the main color (optional)</label>
+      <div style="display:flex;gap:10px;align-items:center"><input id="pr-accent" type="color" value="#4A40C1" style="width:60px;padding:2px;height:40px" oninput="prAccentChanged()"><button class="link-btn" onclick="prResetAccent()">Use the theme's own color</button></div>
+    </div>
+    <div id="poster"></div>
+    <button class="btn no-print" onclick="prSaveAndPrint()">Print / Save as PDF</button>
+    <p class="sub no-print" id="pr-note" style="text-align:center"></p>
+  </div>
+
+  <!-- PRIVACY -->
+  <div class="screen" id="screen-privacy">
+    <div class="topbar"><span class="back" onclick="privacyBack()">&larr; Back</span></div>
+    <h1>Privacy</h1>
+    <div class="policy" id="policy-body"></div>
   </div>
 
   <!-- PARENT: READING LOG -->
@@ -253,6 +359,7 @@
     <div class="error" id="child-error"></div>
     <div class="field"><label>Name</label><input id="child-name" type="text" placeholder="e.g. Amara"></div>
     <div class="field"><label>Age</label><input id="child-age" type="number" min="1" max="19" placeholder="e.g. 7"></div>
+    <label class="chk"><input type="checkbox" id="child-consent"> <span>I am this child's parent or legal guardian, and I agree to PENROV saving their first name, age and reading summaries as described in the <a href="#" onclick="openPrivacy('add-child');return false" style="color:var(--indigo)">privacy page</a>.</span></label>
     <button class="btn" id="child-btn" onclick="handleAddChild()">Save and get a code</button>
   </div>
 
@@ -451,6 +558,7 @@
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + name).classList.add('active');
     if (name === 'front') renderFrontKids();
+    if (name === 'dashboard') maybeShowHomeTip();
   }
 
   function showError(elId, msg) {
@@ -626,6 +734,10 @@
       showError('child-error', 'Enter a name and a valid age.');
       return;
     }
+    if (!document.getElementById('child-consent').checked) {
+      showError('child-error', 'Please tick the box to confirm you are the parent or guardian.');
+      return;
+    }
     const btn = document.getElementById('child-btn');
     btn.disabled = true; btn.textContent = 'Checking...';
 
@@ -651,7 +763,7 @@
 
     const { data, error } = await sb
       .from('children')
-      .insert({ family_id: currentFamilyId, name, age, join_code: joinCode })
+      .insert({ family_id: currentFamilyId, name, age, join_code: joinCode, parent_consent_at: new Date().toISOString() })
       .select()
       .single();
 
@@ -664,6 +776,7 @@
 
     document.getElementById('child-name').value = '';
     document.getElementById('child-age').value = '';
+    document.getElementById('child-consent').checked = false;
     document.getElementById('code-title').textContent = 'Profile created';
     document.getElementById('code-child-name').textContent = data.name;
     document.getElementById('code-value').textContent = data.join_code;
@@ -700,7 +813,8 @@
       return;
     }
 
-    showScreen('add-child');
+    const back = unlockReturn || 'add-child'; unlockReturn = null;
+    if (back === 'child-detail') { openChildDetail(cdChild); } else { showScreen(back); }
   }
 
   let familyCodeText = '';
@@ -795,14 +909,6 @@
       div.onclick = () => openChildDetail(child);
       list.appendChild(div);
     });
-  }
-
-  let cdChild = null;
-  function openChildDetail(child) {
-    cdChild = { id: child.id, name: child.name, code: child.join_code, age: child.age };
-    document.getElementById('cd-title').textContent = child.name;
-    document.getElementById('cd-sub').textContent = 'Age ' + child.age + ' · Child code: ' + child.join_code;
-    showScreen('child-detail');
   }
 
   async function openParentLogs() {
@@ -1222,6 +1328,7 @@
     currentChildCode = code;
     rememberKid(code, res.data.child.name);
     renderChildHome();
+    loadChildExtras();
     showScreen('child-home');
     startChildTicker();
     maybeShowChildNotifBanner();
@@ -1243,6 +1350,7 @@
       childHome.logs = res.data.logs || [];
       childHome.comments = res.data.comments || [];
       renderChildHome();
+      loadChildExtras();
       if (showFeedback) showFlash('Up to date.');
     } else if (showFeedback) {
       showFlash(res.error ? 'Could not refresh: ' + res.error : 'This profile is no longer available.');
@@ -1408,8 +1516,372 @@
       childHome.logs = childHome.logs.filter(l => String(l.subject_id) !== String(clSubject.id)).concat([{ subject_id: clSubject.id, summary: text }]);
     }
     renderChildHome();
+    loadChildExtras();
     showScreen('child-home');
     showFlash('Saved. Well done!');
+  }
+
+
+  // =====================================================
+  // PROGRESS: plant (younger children) / stat board (12+)
+  // =====================================================
+  let unlockReturn = null;
+  let cdChild = null;
+  let cdProfile = null;
+
+  const PLANT_STAGES = [
+    { min: 0,  name: 'A seed, waiting' },
+    { min: 1,  name: 'Sprout' },
+    { min: 4,  name: 'Seedling' },
+    { min: 10, name: 'Young plant' },
+    { min: 20, name: 'Growing strong' },
+    { min: 35, name: 'In bloom' },
+    { min: 60, name: 'Full bloom' }
+  ];
+  function plantStage(total) {
+    let st = 0;
+    PLANT_STAGES.forEach((p, i) => { if (total >= p.min) st = i; });
+    return st;
+  }
+
+  function plantSVG(stage) {
+    const H = [0, 22, 45, 70, 92, 108, 124][stage];
+    const baseY = 150, topY = baseY - H;
+    let g = '';
+    g += '<ellipse cx="100" cy="196" rx="52" ry="7" fill="rgba(0,0,0,0.08)"/>';
+    g += '<path d="M56 150 L144 150 L132 194 Q130 198 124 198 L76 198 Q70 198 68 194 Z" fill="#F75A1A"/>';
+    g += '<rect x="52" y="142" width="96" height="14" rx="6" fill="#E04E12"/>';
+    g += '<ellipse cx="100" cy="146" rx="42" ry="5" fill="#6B4A2B"/>';
+    if (stage === 0) {
+      g += '<ellipse cx="100" cy="142" rx="9" ry="6" fill="#8D6A3F"/>';
+    } else {
+      g += '<path d="M100 146 Q98 ' + (baseY - H / 2) + ' 100 ' + topY + '" stroke="#2E9E6B" stroke-width="6" fill="none" stroke-linecap="round"/>';
+      const leaves = [[0.25, -1], [0.4, 1], [0.58, -1], [0.72, 1], [0.86, -1], [0.92, 1]];
+      const count = [0, 2, 2, 4, 6, 6, 6][stage];
+      for (let i = 0; i < count; i++) {
+        const y = baseY - H * leaves[i][0];
+        const dir = leaves[i][1];
+        const L = 20 + (stage >= 3 ? 6 : 0);
+        const x2 = 100 + dir * L, y2 = y - 12;
+        g += '<path d="M100 ' + y + ' Q' + (100 + dir * L * 0.7) + ' ' + (y - 16) + ' ' + x2 + ' ' + y2 + ' Q' + (100 + dir * L * 0.5) + ' ' + (y + 2) + ' 100 ' + y + ' Z" fill="#43B581"/>';
+      }
+      if (stage === 4) g += '<circle cx="100" cy="' + (topY - 6) + '" r="7" fill="#FEC61E"/>';
+      if (stage >= 5) {
+        const cx = 100, cy = topY - 6, r = stage === 6 ? 13 : 10;
+        const petals = [[0, -1], [0.95, -0.3], [0.6, 0.8], [-0.6, 0.8], [-0.95, -0.3]];
+        petals.forEach(pt => { g += '<circle cx="' + (cx + pt[0] * r * 1.1) + '" cy="' + (cy + pt[1] * r * 1.1) + '" r="' + (r * 0.75) + '" fill="#F27BB0"/>'; });
+        g += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r * 0.6) + '" fill="#FEC61E"/>';
+      }
+      if (stage === 6) {
+        g += '<text x="38" y="60" font-size="18">✨</text><text x="148" y="46" font-size="16">✨</text><text x="150" y="104" font-size="14">⭐</text>';
+      }
+    }
+    return '<svg viewBox="0 0 200 210" width="150" height="158" role="img" aria-label="Reading plant">' + g + '</svg>';
+  }
+
+  function cumulativeWeeks(stats) {
+    const weeks = (stats.weeks || []).slice(-10);
+    let running = stats.total || 0;
+    const out = [];
+    for (let i = weeks.length - 1; i >= 0; i--) {
+      out.unshift({ start: weeks[i].start, value: running });
+      running -= weeks[i].n;
+    }
+    return out;
+  }
+
+  function statBoardSVG(stats) {
+    const pts = cumulativeWeeks(stats);
+    const W = 300, H = 150, L = 30, R = 8, T = 10, B = 24;
+    const maxV = Math.max(5, Math.ceil((stats.total || 0) / 5) * 5);
+    const x = i => L + (pts.length === 1 ? 0 : (W - L - R) * i / (pts.length - 1));
+    const y = v => T + (H - T - B) * (1 - v / maxV);
+    let d = pts.length ? 'M' + x(0) + ' ' + y(pts[0].value) : '';
+    for (let i = 1; i < pts.length; i++) {
+      const mx = (x(i - 1) + x(i)) / 2;
+      d += ' C' + mx + ' ' + y(pts[i - 1].value) + ' ' + mx + ' ' + y(pts[i].value) + ' ' + x(i) + ' ' + y(pts[i].value);
+    }
+    let g = '';
+    [0, 0.5, 1].forEach(f => {
+      const v = Math.round(maxV * f);
+      g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="#E3DEF6" stroke-width="1"/>';
+      g += '<text x="' + (L - 5) + '" y="' + (y(v) + 3) + '" font-size="9" text-anchor="end" fill="#6B63A8">' + v + '</text>';
+    });
+    if (pts.length) {
+      g += '<path d="' + d + ' L' + x(pts.length - 1) + ' ' + y(0) + ' L' + x(0) + ' ' + y(0) + ' Z" fill="rgba(74,64,193,0.10)"/>';
+      g += '<path d="' + d + '" fill="none" stroke="#4A40C1" stroke-width="2.5" stroke-linecap="round"/>';
+      g += '<circle cx="' + x(pts.length - 1) + '" cy="' + y(pts[pts.length - 1].value) + '" r="4" fill="#4A40C1"/>';
+      const lab = i => { const p = String(pts[i].start).split('-').map(Number); return p[2] + ' ' + MONTH_NAMES[p[1] - 1].slice(0, 3); };
+      g += '<text x="' + x(0) + '" y="' + (H - 6) + '" font-size="9" fill="#6B63A8">' + lab(0) + '</text>';
+      g += '<text x="' + x(pts.length - 1) + '" y="' + (H - 6) + '" font-size="9" text-anchor="end" fill="#6B63A8">' + lab(pts.length - 1) + '</text>';
+    }
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="Reading progress over time">' + g + '</svg>';
+  }
+
+  function computeStreak(stats, now) {
+    const dates = new Set((stats.dates || []).map(String));
+    const planned = new Set(stats.planned_days || []);
+    let streak = 0;
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    for (let i = 0; i < 120; i++) {
+      const key = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+      const logged = dates.has(key);
+      if (logged) streak++;
+      else if (planned.has(d.getDay()) && i > 0) break;
+      d.setDate(d.getDate() - 1);
+    }
+    return streak;
+  }
+
+  function progressHTML(stats, age, name, who) {
+    const total = stats.total || 0;
+    const teen = age >= 12;
+    const streak = computeStreak(stats, new Date());
+    const wp = stats.week_planned || 0, wd = Math.min(stats.week_done || 0, wp);
+    let visual, caption = '';
+    if (teen) {
+      visual = '<div style="width:100%">' + statBoardSVG(stats) + '</div>';
+      caption = '<div class="prog-next">Summaries written, adding up week by week.</div>';
+    } else {
+      const st = plantStage(total);
+      const next = PLANT_STAGES[st + 1];
+      visual = plantSVG(st) + '<div class="prog-stage">' + PLANT_STAGES[st].name + '</div>';
+      caption = '<div class="prog-next">' + (next
+        ? (next.min - total) + ' more ' + ((next.min - total) === 1 ? 'summary' : 'summaries') + ' to grow into: ' + next.name.toLowerCase()
+        : (who === 'child' ? 'Your plant is fully grown. Keep it blooming!' : name + "'s plant is fully grown. Keep it blooming!")) + '</div>';
+    }
+    return '<div class="prog-card"><h3>' + esc(who === 'child' ? 'My reading' : name + "'s reading") + '</h3>' +
+      '<div class="prog-visual">' + visual + caption + '</div>' +
+      '<div class="tiles"><div class="tile"><b>' + total + '</b><span>summaries</span></div>' +
+      '<div class="tile"><b>' + streak + '</b><span>day streak</span></div>' +
+      '<div class="tile"><b>' + wd + '/' + wp + '</b><span>this week</span></div></div></div>';
+  }
+
+  function agreementHTML(ag, forParent) {
+    if (!ag || !ag.goal) return '';
+    return '<div class="agree-card"><strong>' + (forParent ? 'Agreement' : 'Our agreement') + (forParent && ag.hidden ? ' (hidden from child)' : '') + '</strong>' +
+      'Goal: ' + esc(ag.goal) + '<br>' + (ag.reward ? 'Reward: ' + esc(ag.reward) + '<br>' : '') + (ag.when ? 'When: ' + esc(ag.when) : '') + '</div>';
+  }
+
+  // ---------- parent: child page ----------
+  async function openChildDetail(child) {
+    cdChild = { id: child.id, name: child.name, code: child.join_code || (cdChild && cdChild.code), age: child.age };
+    document.getElementById('cd-title').textContent = child.name;
+    document.getElementById('cd-sub').textContent = 'Age ' + child.age + ' · Child code: ' + cdChild.code;
+    document.getElementById('cd-progress').innerHTML = '<p class="sub">Loading...</p>';
+    document.getElementById('cd-agreement').innerHTML = '';
+    showScreen('child-detail');
+    await loadChildProfile();
+  }
+
+  async function loadChildProfile() {
+    const { data, error } = await sb.rpc('parent_child_profile', { child_id_input: String(cdChild.id), date_input: localDateStr() });
+    if (error || !data) {
+      cdProfile = null;
+      document.getElementById('cd-progress').innerHTML = '<p class="sub">Could not load progress yet.</p>';
+      return;
+    }
+    cdProfile = data;
+    document.getElementById('cd-progress').innerHTML = progressHTML(data.stats, cdChild.age, cdChild.name, 'parent');
+    document.getElementById('cd-agreement').innerHTML = agreementHTML(data.agreement, true);
+  }
+
+  async function deleteChildProfile() {
+    if (!cdChild) return;
+    if (!confirm('Delete ' + cdChild.name + ' and everything saved about them (timetable and reading summaries)? This cannot be undone.')) return;
+    const { error } = await sb.rpc('parent_delete_child', { child_id_input: String(cdChild.id) });
+    if (error) { alert('Could not delete: ' + error.message); return; }
+    cdChild = null; cdProfile = null;
+    backToDashboard();
+  }
+
+  // ---------- agreement ----------
+  function openAgreement() {
+    if (!cdProfile) return;
+    if (!cdProfile.unlocked) {
+      unlockReturn = 'child-detail';
+      showScreen('unlock');
+      return;
+    }
+    clearError('ag-error');
+    const ag = cdProfile.agreement || {};
+    document.getElementById('ag-goal').value = ag.goal || '';
+    document.getElementById('ag-reward').value = ag.reward || '';
+    document.getElementById('ag-when').value = ag.when || 'End of term';
+    document.getElementById('ag-hidden').checked = !!ag.hidden;
+    showScreen('agreement');
+  }
+  async function saveAgreement() {
+    clearError('ag-error');
+    const goal = document.getElementById('ag-goal').value.trim();
+    if (!goal) { showError('ag-error', 'Write the goal, or tap Remove agreement.'); return; }
+    const { error } = await sb.rpc('parent_set_agreement', {
+      child_id_input: String(cdChild.id), goal_input: goal,
+      reward_input: document.getElementById('ag-reward').value.trim(),
+      when_input: document.getElementById('ag-when').value,
+      hidden_input: document.getElementById('ag-hidden').checked
+    });
+    if (error) { showError('ag-error', error.message); return; }
+    await openChildDetail(cdChild);
+  }
+  async function clearAgreement() {
+    const { error } = await sb.rpc('parent_set_agreement', { child_id_input: String(cdChild.id), goal_input: '', reward_input: '', when_input: '', hidden_input: false });
+    if (error) { showError('ag-error', error.message); return; }
+    await openChildDetail(cdChild);
+  }
+
+  // =====================================================
+  // PRINTABLE TIMETABLE
+  // =====================================================
+  const THEMES = {
+    penrov:   { name: 'PENROV',     tier: 'all',   bg: '#FEF2D9', ink: '#32297B', accent: '#4A40C1', deco: '📖 ⏰ ✏️' },
+    pastel:   { name: 'Pastel',     tier: 'young', bg: '#FFF0F6', ink: '#5B3A64', accent: '#E58BB8', deco: '🌸 🦋 🌈 🦋 🌸' },
+    stars:    { name: 'Stars',      tier: 'young', bg: '#FFF8DC', ink: '#2B2A6B', accent: '#F5A800', deco: '⭐ 🌟 ✨ 🌟 ⭐' },
+    jungle:   { name: 'Jungle',     tier: 'young', bg: '#E9F7E4', ink: '#1F4D2B', accent: '#2E9E4F', deco: '🌿 🦁 🐒 🦜 🌿' },
+    sunshine: { name: 'Sunshine',   tier: 'young', bg: '#FFF4D6', ink: '#7A3E00', accent: '#FF8A1F', deco: '☀️ 🌻 🐝 🌻 ☀️' },
+    ocean:    { name: 'Ocean',      tier: 'young', bg: '#E6F6FF', ink: '#0B3D5C', accent: '#1E88C9', deco: '🌊 🐠 🐚 🐬 🌊' },
+    light:    { name: 'Light',      tier: 'teen',  bg: '#FFFFFF', ink: '#1F2430', accent: '#3B5BDB', deco: '' },
+    vibrant:  { name: 'Vibrant',    tier: 'teen',  bg: '#FFFFFF', ink: '#14142B', accent: '#E8336D', deco: '' },
+    earth:    { name: 'Muted Earth', tier: 'teen', bg: '#F6F1EA', ink: '#3B3228', accent: '#8A6B4F', deco: '' }
+  };
+  let prTheme = 'penrov', prAccent = '', prSubjects = [];
+
+  async function openPrint() {
+    if (!cdChild) return;
+    clearError('pr-error');
+    document.getElementById('pr-note').textContent = '';
+    const { data } = await sb.from('subjects').select('*').eq('child_id', cdChild.id).order('start_time', { ascending: true });
+    prSubjects = data || [];
+    prTheme = (cdProfile && cdProfile.pdf_theme && THEMES[cdProfile.pdf_theme]) ? cdProfile.pdf_theme : 'penrov';
+    prAccent = (cdProfile && cdProfile.pdf_accent) || '';
+    renderPrintThemes();
+    renderPoster();
+    showScreen('print');
+  }
+
+  function themeLocked(key) { return key !== 'penrov' && !(cdProfile && cdProfile.unlocked); }
+
+  function renderPrintThemes() {
+    const tier = cdChild.age >= 12 ? 'teen' : 'young';
+    const keys = Object.keys(THEMES).filter(k => THEMES[k].tier === 'all' || THEMES[k].tier === tier);
+    const box = document.getElementById('pr-themes');
+    box.innerHTML = '';
+    keys.forEach(k => {
+      const t = THEMES[k];
+      const b = document.createElement('button');
+      b.className = 'theme-opt' + (k === prTheme ? ' sel' : '');
+      b.innerHTML = '<span class="sw" style="background:' + t.accent + '"></span>' + esc(t.name) + (themeLocked(k) ? ' 🔒' : '');
+      b.onclick = () => {
+        if (themeLocked(k)) {
+          document.getElementById('pr-note').innerHTML = 'More themes come with the unlock. <a href="#" style="color:var(--indigo)" onclick="unlockReturn=\'child-detail\';showScreen(\'unlock\');return false">Enter your purchase code</a>';
+          return;
+        }
+        prTheme = k; prAccent = '';
+        document.getElementById('pr-note').textContent = '';
+        renderPrintThemes(); renderPoster();
+      };
+      box.appendChild(b);
+    });
+    document.getElementById('pr-accent').value = prAccent || THEMES[prTheme].accent;
+  }
+
+  function prAccentChanged() {
+    if (themeLocked('x')) {
+      document.getElementById('pr-note').innerHTML = 'Changing colors comes with the unlock. <a href="#" style="color:var(--indigo)" onclick="unlockReturn=\'child-detail\';showScreen(\'unlock\');return false">Enter your purchase code</a>';
+      document.getElementById('pr-accent').value = THEMES[prTheme].accent;
+      return;
+    }
+    prAccent = document.getElementById('pr-accent').value;
+    renderPoster();
+  }
+  function prResetAccent() {
+    prAccent = '';
+    document.getElementById('pr-accent').value = THEMES[prTheme].accent;
+    renderPoster();
+  }
+
+  function renderPoster() {
+    const t = THEMES[prTheme];
+    const acc = prAccent || t.accent;
+    const el = document.getElementById('poster');
+    el.className = t.tier === 'teen' ? 'teen' : '';
+    el.style.setProperty('--pbg', t.bg);
+    el.style.setProperty('--pink', t.ink);
+    el.style.setProperty('--pacc', acc);
+    let days = '';
+    DAY_ORDER.forEach(d => {
+      const ss = prSubjects.filter(s => s.day_of_week === d).sort((a, b) => a.start_time.localeCompare(b.start_time));
+      let inner;
+      if (ss.length) {
+        inner = ss.map(s => '<div class="p-sess"><b>' + esc(s.name) + '</b>' + esc(timeRange(s)) + '</div>').join('');
+      } else {
+        inner = '<div class="p-free">' + ((d === 6 || d === 0) ? 'Free day<br>(chores, a novel, rest)' : 'No reading planned') + '</div>';
+      }
+      days += '<div class="p-day"><h4>' + DAY_NAMES[d].toUpperCase() + '</h4>' + inner + '</div>';
+    });
+    el.innerHTML =
+      '<div class="p-title">' + esc(cdChild.name) + "'s Reading Timetable</div>" +
+      (t.deco ? '<div class="p-deco">' + t.deco + '</div>' : '<div style="height:8px"></div>') +
+      '<div class="p-grid">' + days + '</div>' +
+      '<div class="p-foot">Every week, all term long &middot; PENROV</div>';
+  }
+
+  async function prSaveAndPrint() {
+    clearError('pr-error');
+    if (cdProfile && cdProfile.unlocked) {
+      const { error } = await sb.rpc('parent_set_child_style', { child_id_input: String(cdChild.id), theme_input: prTheme, accent_input: prAccent || '' });
+      if (error) { showError('pr-error', error.message); return; }
+      cdProfile.pdf_theme = prTheme; cdProfile.pdf_accent = prAccent || null;
+    }
+    window.print();
+  }
+
+  // =====================================================
+  // CHILD HOME: plant / stat board and agreement
+  // =====================================================
+  async function loadChildExtras() {
+    const box = document.getElementById('ch-extras');
+    if (!childHome) { box.innerHTML = ''; return; }
+    try {
+      const { data, error } = await sb.rpc('get_child_extras', { code_input: childHome.code, date_input: localDateStr() });
+      if (error || !data) return;
+      box.innerHTML = progressHTML(data.stats, data.age, childHome.child.name, 'child') +
+        (data.agreement ? '<div style="margin-top:8px">' + agreementHTML(data.agreement, false) + '</div>' : '');
+    } catch (e) {}
+  }
+
+  // =====================================================
+  // PRIVACY + HOME SCREEN TIP
+  // =====================================================
+  let privacyFrom = 'front';
+  const SUPPORT_EMAIL = '';   // add a support email here if you want one shown on the privacy page
+  function openPrivacy(from) {
+    privacyFrom = from || 'front';
+    const contact = SUPPORT_EMAIL
+      ? 'Email ' + esc(SUPPORT_EMAIL) + '.'
+      : 'Message the seller through the page where you bought PENROV (Selar or Gumroad).';
+    document.getElementById('policy-body').innerHTML =
+      '<p>PENROV helps children build a reading habit. This page explains, in plain words, what is saved and who can see it.</p>' +
+      '<h3>What we save</h3><p>The parent\'s first name; each child\'s first name and age; the reading timetable; what the child writes after reading; the parent\'s comments; and the details your phone needs to send reading-time reminders. We do not ask for a child\'s surname, address, school, photo or email.</p>' +
+      '<h3>Who can see it</h3><p>Only the parents in your family (people who have your family code) can see a child\'s summaries. A child can see only their own timetable, summaries and parent comments, using their own code. Nothing is shown to other families or the public.</p>' +
+      '<h3>What we do not do</h3><p>No advertising. No selling or sharing of data with advertisers or other companies. Your data is only used to run the app.</p>' +
+      '<h3>Where it is kept</h3><p>On a secure database service (Supabase), on servers in Frankfurt, Germany (European Union). Access is limited by rules so that each family only reaches its own information. Because PENROV is used in many countries, your family\'s information may be handled in a country other than your own.</p>' +
+      '<h3>Deleting data</h3><p>Open a child\'s page and tap <strong>Delete this child and all their data</strong>. Their profile, timetable and summaries are removed. To remove your whole family account, ask for it. ' + contact + '</p>' +
+      '<h3>Parental consent</h3><p>PENROV is used by parents on behalf of their children. By adding a child you confirm that you are their parent or legal guardian.</p>' +
+      '<h3>Questions</h3><p>' + contact + '</p>';
+    showScreen('privacy');
+  }
+  function privacyBack() { showScreen(privacyFrom || 'front'); }
+
+  function maybeShowHomeTip() {
+    let dismissed = false;
+    try { dismissed = localStorage.getItem('penrov_tip_dismissed') === '1'; } catch (e) {}
+    const standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+    document.getElementById('home-tip').style.display = (dismissed || standalone) ? 'none' : 'flex';
+  }
+  function dismissHomeTip() {
+    try { localStorage.setItem('penrov_tip_dismissed', '1'); } catch (e) {}
+    document.getElementById('home-tip').style.display = 'none';
   }
 
   // On load, check if already logged in
