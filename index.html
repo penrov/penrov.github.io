@@ -74,8 +74,15 @@
   .day-head h2 { margin-bottom: 0; }
   .add-day { background: var(--lavender); color: var(--indigo); border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 700; }
   .edit-hint { font-size: 11px; color: var(--muted); }
-  .time-row { display: flex; gap: 10px; }
+  .time-row { display: flex; flex-direction: column; gap: 4px; }
   .time-row .field { flex: 1; }
+  .tpick { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .tpick select { width: auto; flex: 1; min-width: 78px; font-size: 18px; font-weight: 600; padding: 12px 8px; }
+  .tpick .ap { display: flex; gap: 6px; flex: 2; min-width: 220px; }
+  .tpick .ap button { flex: 1; padding: 10px 6px; border-radius: 10px; border: 1.5px solid var(--border); background: #fff; color: var(--navy); font-size: 13px; font-weight: 700; line-height: 1.3; }
+  .tpick .ap button small { display: block; font-size: 11px; font-weight: 500; color: var(--muted); }
+  .tpick .ap button.on { background: var(--indigo); color: #fff; border-color: var(--indigo); }
+  .tpick .ap button.on small { color: #E6E2FF; }
   .dur-note { font-size: 12px; color: var(--muted); margin-top: -2px; }
   .warn-card { background: #FFF6DB; border: 1.5px solid var(--amber); border-radius: 12px; padding: 12px 14px; font-size: 13px; color: var(--navy); }
   .warn-card strong { display: block; margin-bottom: 4px; }
@@ -412,12 +419,11 @@
       <button type="button" class="link-btn" style="margin-top:8px" onclick="selectWeekdays()">Select Mon&ndash;Fri</button>
     </div>
     <div class="time-row">
-      <div class="field"><label>Start time</label><input id="sf-time" type="time" value="16:00" oninput="sfStartChanged()"></div>
-      <div class="field"><label>End time</label><input id="sf-end" type="time" value="16:30" oninput="sfUpdateDurationNote()"></div>
+      <div class="field"><label>Start time</label><input id="sf-time" type="hidden" value="16:00" oninput="sfStartChanged()"><div class="tpick" id="pick-sf-time"></div></div>
+      <div class="field"><label>End time</label><input id="sf-end" type="hidden" value="16:30" oninput="sfUpdateDurationNote()"><div class="tpick" id="pick-sf-end"></div></div>
     </div>
     <p class="dur-note" id="sf-say" style="font-weight:700;margin-bottom:4px"></p>
     <p class="dur-note" id="sf-dur-note"></p>
-    <div id="sf-ampm" class="warn-card" style="display:none"></div>
     <div id="sf-overlap" class="warn-card" style="display:none"></div>
     <button class="btn" id="sf-save" onclick="saveSubject()">Save</button>
     <button class="btn-outline danger" id="sf-delete" style="display:none" onclick="deleteSubject()">Delete this session</button>
@@ -1202,43 +1208,54 @@
     sfCheckOverlap();
   }
 
-  // Spells the time out in words (5:30 pm, evening) so AM and PM can't be confused,
-  // and warns when a session starts very early or very late.
-  let sfTimeAck = '';
-  function dayPart(h) {
-    if (h < 5) return 'at night';
-    if (h < 12) return 'in the morning';
-    if (h < 17) return 'in the afternoon';
-    if (h < 21) return 'in the evening';
-    return 'at night';
+  // Time pickers: hour, minute and a clear AM / PM choice. The parent decides; nothing is suggested.
+  function sfPickerHtml(id) {
+    let hrs = '', mins = '';
+    for (let h = 1; h <= 12; h++) hrs += '<option value="' + h + '">' + h + '</option>';
+    for (let m = 0; m < 60; m += 5) mins += '<option value="' + m + '">' + String(m).padStart(2, '0') + '</option>';
+    return '<select aria-label="Hour" id="' + id + '-h" onchange="sfPickerChanged(\'' + id + '\')">' + hrs + '</select>' +
+      '<select aria-label="Minutes" id="' + id + '-m" onchange="sfPickerChanged(\'' + id + '\')">' + mins + '</select>' +
+      '<div class="ap">' +
+      '<button type="button" id="' + id + '-am" onclick="sfPickAp(\'' + id + '\', 0)">AM<small>midnight to noon</small></button>' +
+      '<button type="button" id="' + id + '-pm" onclick="sfPickAp(\'' + id + '\', 1)">PM<small>noon to midnight</small></button></div>';
+  }
+  function sfSyncPicker(id) {
+    const v = (document.getElementById(id).value || '16:00').slice(0, 5);
+    const [h, m] = v.split(':').map(Number);
+    const hSel = document.getElementById(id + '-h'), mSel = document.getElementById(id + '-m');
+    hSel.value = String(h % 12 === 0 ? 12 : h % 12);
+    if (![...mSel.options].some(o => Number(o.value) === m)) {
+      const o = document.createElement('option'); o.value = String(m); o.textContent = String(m).padStart(2, '0');
+      const after = [...mSel.options].find(x => Number(x.value) > m);
+      mSel.insertBefore(o, after || null);
+    }
+    mSel.value = String(m);
+    document.getElementById(id + '-am').classList.toggle('on', h < 12);
+    document.getElementById(id + '-pm').classList.toggle('on', h >= 12);
+  }
+  function sfPickerChanged(id) {
+    const hSel = document.getElementById(id + '-h'), mSel = document.getElementById(id + '-m');
+    const pm = document.getElementById(id + '-pm').classList.contains('on');
+    const h12 = Number(hSel.value);
+    const h = (h12 % 12) + (pm ? 12 : 0);
+    document.getElementById(id).value = String(h).padStart(2, '0') + ':' + String(Number(mSel.value)).padStart(2, '0');
+    if (id === 'sf-time') sfStartChanged(); else sfUpdateDurationNote();
+  }
+  function sfPickAp(id, pm) {
+    document.getElementById(id + '-pm').classList.toggle('on', !!pm);
+    document.getElementById(id + '-am').classList.toggle('on', !pm);
+    sfPickerChanged(id);
   }
   function sfUpdateSay() {
+    ['sf-time', 'sf-end'].forEach(id => sfSyncPicker(id));
     const s = document.getElementById('sf-time').value, e = document.getElementById('sf-end').value;
-    const say = document.getElementById('sf-say'), warn = document.getElementById('sf-ampm');
-    if (!s) { say.textContent = ''; warn.style.display = 'none'; return; }
-    const sh = Number(s.split(':')[0]);
-    say.textContent = 'Starts ' + formatTime(s).toUpperCase() + ' ' + dayPart(sh) + (e ? ', ends ' + formatTime(e).toUpperCase() : '') + '.';
-    if (sh < 6 || sh >= 21) {
-      const fixBtn = sh < 12 ? '<button type="button" class="btn-outline" style="margin-top:8px" onclick="sfMakePm()">Make it ' + formatTime(addMinutes(s, 720)).toUpperCase() + ' instead</button>' : '';
-      warn.innerHTML = '<strong>Check the time.</strong> ' + formatTime(s).toUpperCase() + ' is ' + (sh < 12 ? 'very early ' : 'late ') + dayPart(sh) + '. Reminders go out at exactly this time. Meant the other half of the day?' + fixBtn;
-      warn.style.display = 'block';
-    } else {
-      warn.style.display = 'none';
-    }
+    const say = document.getElementById('sf-say');
+    say.textContent = s ? 'Starts ' + formatTime(s).toUpperCase() + (e ? ', ends ' + formatTime(e).toUpperCase() : '') + '.' : '';
   }
-  function sfMakePm() {
-    const s = document.getElementById('sf-time').value, e = document.getElementById('sf-end').value;
-    if (!s) return;
-    const dur = e ? minutesBetween(s, e) : 30;
-    const ns = addMinutes(s, 720);
-    document.getElementById('sf-time').value = ns;
-    document.getElementById('sf-end').value = addMinutes(ns, dur > 0 ? dur : 30);
-    sfPrevStart = ns; sfTimeAck = '';
-    sfUpdateDurationNote();
-  }
+  document.getElementById('pick-sf-time').innerHTML = sfPickerHtml('sf-time');
+  document.getElementById('pick-sf-end').innerHTML = sfPickerHtml('sf-end');
 
   function sfStartChanged() {
-    sfTimeAck = '';
     const s = document.getElementById('sf-time').value;
     const e = document.getElementById('sf-end').value;
     if (!s) return;
@@ -1251,7 +1268,6 @@
 
   function openSubjectForm(id, presetDay) {
     clearError('sf-error');
-    sfTimeAck = '';
     editingSubject = id ? ttSubjects.find(s => String(s.id) === String(id)) || null : null;
     const editing = !!editingSubject;
     document.getElementById('sf-title').textContent = editing ? 'Edit ' + DAY_NAMES[editingSubject.day_of_week] + ' session' : 'Add subject';
@@ -1289,12 +1305,6 @@
     if (!endTime) { showError('sf-error', 'Pick an end time.'); return; }
     const duration = minutesBetween(time, endTime);
     if (duration <= 0) { showError('sf-error', 'The end time must be after the start time.'); return; }
-    const startHour = Number(time.split(':')[0]);
-    if ((startHour < 6 || startHour >= 21) && sfTimeAck !== time) {
-      sfTimeAck = time;
-      showError('sf-error', formatTime(time).toUpperCase() + ' is ' + (startHour < 12 ? 'in the early morning' : 'late at night') + '. If that is right, tap Save again. If not, change the time (or tap the button below).');
-      return;
-    }
 
     const btn = document.getElementById('sf-save');
     btn.disabled = true; btn.textContent = 'Saving...';
