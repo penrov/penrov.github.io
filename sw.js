@@ -41,7 +41,9 @@ self.addEventListener('push', (event) => {
       icon: ICON,
       badge: ICON,
       tag: 'penrov-reading-time',
-      renotify: true
+      renotify: true,
+      silent: false,
+      vibrate: [250, 120, 250, 120, 250]
     });
   })());
 });

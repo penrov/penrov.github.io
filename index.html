@@ -241,6 +241,10 @@
       <div class="notif-text"><strong>Get reading reminders</strong><span>We'll ping you when it's time to read.</span></div>
       <button class="notif-btn" onclick="enableChildNotifications()">Turn on</button>
     </div>
+    <div class="notif-card home-tip" style="display:none;margin-bottom:12px">
+      <div class="notif-text"><strong>Put PENROV on your home screen</strong><span class="home-tip-text">Android Chrome: menu (three dots) &rarr; Install app, or Add to Home screen. iPhone Safari: Share &rarr; Add to Home Screen. Then open it from the icon.</span></div>
+      <button class="notif-btn home-tip-btn" onclick="homeTipAction()">Got it</button>
+    </div>
     <div id="ch-comments"></div>
     <div id="ch-extras"></div>
     <p class="sub" id="ch-progress"></p>
@@ -283,9 +287,9 @@
       <div class="notif-text"><strong>Get reading-time alerts</strong><span>One ping a day, when your child's first session starts.</span></div>
       <button class="notif-btn" onclick="enableParentNotifications()">Turn on</button>
     </div>
-    <div id="home-tip" class="notif-card" style="display:none;margin-bottom:12px">
-      <div class="notif-text"><strong>Keep PENROV on your home screen</strong><span id="home-tip-text">Android Chrome: menu (three dots) &rarr; Install app, or Add to Home screen. iPhone Safari: Share &rarr; Add to Home Screen. Then open it from the icon.</span></div>
-      <button class="notif-btn" id="home-tip-btn" onclick="homeTipAction()">Got it</button>
+    <div id="home-tip" class="notif-card home-tip" style="display:none;margin-bottom:12px">
+      <div class="notif-text"><strong>Keep PENROV on your home screen</strong><span class="home-tip-text" id="home-tip-text">Android Chrome: menu (three dots) &rarr; Install app, or Add to Home screen. iPhone Safari: Share &rarr; Add to Home Screen. Then open it from the icon.</span></div>
+      <button class="notif-btn home-tip-btn" id="home-tip-btn" onclick="homeTipAction()">Got it</button>
     </div>
     <div id="children-list"></div>
     <button class="btn" id="add-child-btn" onclick="showScreen('add-child')">+ Add child</button>
@@ -569,7 +573,7 @@
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + name).classList.add('active');
     if (name === 'front') renderFrontKids();
-    if (name === 'dashboard') maybeShowHomeTip();
+    if (name === 'dashboard' || name === 'child-home') maybeShowHomeTip();
   }
 
   function showError(elId, msg) {
@@ -1914,16 +1918,12 @@
   });
   window.addEventListener('appinstalled', () => { deferredInstall = null; dismissHomeTip(); });
 
+  const TIP_TEXT_DEFAULT = 'Android Chrome: menu (three dots) \u2192 Install app, or Add to Home screen. iPhone Safari: Share \u2192 Add to Home Screen. Then open it from the icon.';
   function updateHomeTipButton() {
-    const btn = document.getElementById('home-tip-btn');
-    const txt = document.getElementById('home-tip-text');
-    if (!btn) return;
-    if (deferredInstall) {
-      btn.textContent = 'Add';
-      txt.textContent = 'Tap Add to put PENROV on your home screen, then open it from the icon.';
-    } else {
-      btn.textContent = 'Got it';
-    }
+    document.querySelectorAll('.home-tip-btn').forEach(btn => { btn.textContent = deferredInstall ? 'Add' : 'Got it'; });
+    document.querySelectorAll('.home-tip-text').forEach(txt => {
+      txt.textContent = deferredInstall ? 'Tap Add to put PENROV on your home screen, then open it from the icon.' : TIP_TEXT_DEFAULT;
+    });
   }
   async function homeTipAction() {
     if (deferredInstall) {
@@ -1932,21 +1932,19 @@
         await deferredInstall.userChoice;
       } catch (e) {}
       deferredInstall = null;
-      dismissHomeTip();
-    } else {
-      dismissHomeTip();
     }
+    dismissHomeTip();
   }
   function maybeShowHomeTip() {
     let dismissed = false;
     try { dismissed = localStorage.getItem(TIP_KEY) === '1'; } catch (e) {}
     const standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
-    document.getElementById('home-tip').style.display = (dismissed || standalone) ? 'none' : 'flex';
+    document.querySelectorAll('.home-tip').forEach(el => { el.style.display = (dismissed || standalone) ? 'none' : 'flex'; });
     updateHomeTipButton();
   }
   function dismissHomeTip() {
     try { localStorage.setItem(TIP_KEY, '1'); } catch (e) {}
-    document.getElementById('home-tip').style.display = 'none';
+    document.querySelectorAll('.home-tip').forEach(el => { el.style.display = 'none'; });
   }
 
   // On load, check if already logged in
