@@ -189,20 +189,22 @@
       <div class="kid-list" id="front-children-list"></div>
     </div>
     <div class="error" id="front-error"></div>
-    <button class="btn" onclick="showScreen('signup')">Get started</button>
+    <button class="btn" onclick="renderBuyLinks();showScreen('signup')">Get started with my purchase code</button>
     <button class="btn-outline" onclick="showScreen('login')">Join my family / restore access</button>
     <button class="btn-outline" onclick="showScreen('child-entry')">I'm a child with a code</button>
     <button class="link-btn" style="align-self:center" onclick="openPrivacy('front')">Privacy</button>
   </div>
 
-  <!-- CREATE FAMILY (first-time parent, no code involved) -->
+  <!-- CREATE FAMILY (paid: needs a purchase code) -->
   <div class="screen" id="screen-signup">
     <div class="topbar"><span class="back" onclick="showScreen('front')">&larr; Back</span></div>
     <h1>Welcome</h1>
-    <p class="sub">Just your name to get started.</p>
+    <p class="sub">Enter your name and the purchase code you received after buying PENROV.</p>
     <div class="error" id="signup-error"></div>
     <div class="field"><label>Your name</label><input id="signup-name" type="text" placeholder="e.g. Blessing"></div>
+    <div class="field"><label>Purchase code</label><input id="signup-code" type="text" autocapitalize="characters" autocomplete="off" placeholder="e.g. GUM-1234-ABCD-5678"></div>
     <button class="btn" id="signup-btn" onclick="handleSignup()">Continue</button>
+    <p class="sub" id="signup-buy" style="text-align:center"></p>
   </div>
 
   <!-- RESTORE ACCESS / CO-PARENT (tucked away, not the primary door) -->
@@ -211,7 +213,7 @@
     <h1>Join your family</h1>
     <p class="sub">Enter the family code. The main parent can find it on their dashboard, under &ldquo;Share your family code&rdquo;.</p>
     <div class="error" id="login-error"></div>
-    <div class="field"><label>Family code</label><input id="login-code" type="text" maxlength="6" autocapitalize="characters" autocomplete="off" style="letter-spacing:4px;text-transform:uppercase;font-size:18px;text-align:center" placeholder="------"></div>
+    <div class="field"><label>Family code</label><input id="login-code" type="text" maxlength="8" autocapitalize="characters" autocomplete="off" style="letter-spacing:4px;text-transform:uppercase;font-size:18px;text-align:center" placeholder="------"></div>
     <div class="field"><label>Recovery word <span style="font-weight:400">(main parent only, leave empty if you are the co-parent)</span></label><input id="login-word" type="text" autocomplete="off" autocapitalize="none" placeholder="The word you chose on your dashboard"></div>
     <button class="btn" id="login-btn" onclick="handleLogin()">Continue</button>
   </div>
@@ -577,49 +579,54 @@
     return out;
   }
 
+  // Add your product page links here when you have them (leave empty until then).
+  const BUY_LINKS = { selar: '', gumroad: '' };
+  function renderBuyLinks() {
+    const el = document.getElementById('signup-buy');
+    if (!el) return;
+    const parts = [];
+    if (BUY_LINKS.selar) parts.push('<a href="' + esc(BUY_LINKS.selar) + '" target="_blank" rel="noopener" style="color:var(--indigo)">Selar (₦6,000)</a>');
+    if (BUY_LINKS.gumroad) parts.push('<a href="' + esc(BUY_LINKS.gumroad) + '" target="_blank" rel="noopener" style="color:var(--indigo)">Gumroad ($6.99)</a>');
+    el.innerHTML = parts.length
+      ? 'No code yet? Buy PENROV on ' + parts.join(' or ') + ', one payment for your whole family.'
+      : 'No code yet? Buy PENROV on Selar or Gumroad. One payment covers your whole family.';
+  }
+
   async function handleSignup() {
     clearError('signup-error');
     const name = document.getElementById('signup-name').value.trim();
+    const code = document.getElementById('signup-code').value.trim();
     if (!name) {
       showError('signup-error', 'Enter your name.');
       return;
     }
+    if (!code) {
+      showError('signup-error', 'Enter the purchase code you received after buying PENROV.');
+      return;
+    }
     const btn = document.getElementById('signup-btn');
-    btn.disabled = true; btn.textContent = 'Setting up...';
+    btn.disabled = true; btn.textContent = 'Checking your code...';
 
-    const { data: authData, error: authError } = await sb.auth.signInAnonymously();
-    if (authError) {
-      showError('signup-error', authError.message);
-      btn.disabled = false; btn.textContent = 'Continue';
-      return;
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      const { error: authError } = await sb.auth.signInAnonymously();
+      if (authError) {
+        showError('signup-error', authError.message);
+        btn.disabled = false; btn.textContent = 'Continue';
+        return;
+      }
     }
 
-    const familyId = crypto.randomUUID();
-    const inviteCode = generateCode();
-
-    const { error: familyError } = await sb
-      .from('families')
-      .insert({ id: familyId, invite_code: inviteCode });
-
-    if (familyError) {
-      showError('signup-error', 'Family setup failed: ' + familyError.message);
-      btn.disabled = false; btn.textContent = 'Continue';
-      return;
-    }
-
-    const { error: parentError } = await sb
-      .from('parents')
-      .insert({ id: authData.user.id, family_id: familyId, name, is_primary: true });
-
-    if (parentError) {
-      showError('signup-error', 'Parent profile failed: ' + parentError.message);
-      btn.disabled = false; btn.textContent = 'Continue';
-      return;
-    }
-
-    currentFamilyId = familyId;
-    isPrimaryParent = true;
+    const { data: created, error: createError } = await sb.rpc('create_paid_family', { name_input: name, code_input: code });
     btn.disabled = false; btn.textContent = 'Continue';
+    if (createError || !created) {
+      showError('signup-error', createError ? createError.message : 'That code did not work. Check it and try again.');
+      return;
+    }
+
+    document.getElementById('signup-code').value = '';
+    currentFamilyId = created.family_id;
+    isPrimaryParent = true;
     renderChildren();
     loadFamilyCode();
     updateAddChildVisibility();
@@ -793,23 +800,15 @@
     const btn = document.getElementById('unlock-btn');
     btn.disabled = true; btn.textContent = 'Checking...';
 
-    const { data: redeemed, error: redeemError } = await sb.rpc('redeem_unlock_code', { code_input: code });
-
-    if (redeemError || !redeemed) {
-      showError('unlock-error', "That code didn't work. Check it and try again, or contact support.");
-      btn.disabled = false; btn.textContent = 'Unlock';
-      return;
-    }
-
-    const { error: updateError } = await sb
-      .from('families')
-      .update({ unlocked: true })
-      .eq('id', currentFamilyId);
+    const { data: unlocked, error: unlockError } = await sb.rpc('unlock_my_family', { code_input: code });
 
     btn.disabled = false; btn.textContent = 'Unlock';
 
-    if (updateError) {
-      showError('unlock-error', 'Code accepted, but unlocking failed: ' + updateError.message);
+    if (unlockError || !unlocked) {
+      const msg = unlockError && /main parent/i.test(unlockError.message)
+        ? 'Only the main parent can unlock. Ask them to enter the code.'
+        : "That code didn't work. Check it and try again, or contact support.";
+      showError('unlock-error', msg);
       return;
     }
 
