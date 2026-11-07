@@ -456,7 +456,16 @@
     }
   }
 
+  // Tells the database which time zone this family is in, so reminders go out at the right local time.
+  async function syncFamilyTimezoneQuietly() {
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz) await sb.rpc('set_family_timezone', { tz_input: tz });
+    } catch (e) {}
+  }
+
   async function maybeShowParentNotifBanner() {
+    syncFamilyTimezoneQuietly();
     if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
     if (Notification.permission === 'default') {
       document.getElementById('parent-notif-banner').style.display = 'flex';
