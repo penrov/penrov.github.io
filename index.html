@@ -415,7 +415,9 @@
       <div class="field"><label>Start time</label><input id="sf-time" type="time" value="16:00" oninput="sfStartChanged()"></div>
       <div class="field"><label>End time</label><input id="sf-end" type="time" value="16:30" oninput="sfUpdateDurationNote()"></div>
     </div>
+    <p class="dur-note" id="sf-say" style="font-weight:700;margin-bottom:4px"></p>
     <p class="dur-note" id="sf-dur-note"></p>
+    <div id="sf-ampm" class="warn-card" style="display:none"></div>
     <div id="sf-overlap" class="warn-card" style="display:none"></div>
     <button class="btn" id="sf-save" onclick="saveSubject()">Save</button>
     <button class="btn-outline danger" id="sf-delete" style="display:none" onclick="deleteSubject()">Delete this session</button>
@@ -1192,6 +1194,7 @@
 
   function sfUpdateDurationNote() {
     const s = document.getElementById('sf-time').value, e = document.getElementById('sf-end').value;
+    sfUpdateSay();
     const note = document.getElementById('sf-dur-note');
     if (!s || !e) { note.textContent = ''; sfCheckOverlap(); return; }
     const mins = minutesBetween(s, e);
@@ -1199,7 +1202,43 @@
     sfCheckOverlap();
   }
 
+  // Spells the time out in words (5:30 pm, evening) so AM and PM can't be confused,
+  // and warns when a session starts very early or very late.
+  let sfTimeAck = '';
+  function dayPart(h) {
+    if (h < 5) return 'at night';
+    if (h < 12) return 'in the morning';
+    if (h < 17) return 'in the afternoon';
+    if (h < 21) return 'in the evening';
+    return 'at night';
+  }
+  function sfUpdateSay() {
+    const s = document.getElementById('sf-time').value, e = document.getElementById('sf-end').value;
+    const say = document.getElementById('sf-say'), warn = document.getElementById('sf-ampm');
+    if (!s) { say.textContent = ''; warn.style.display = 'none'; return; }
+    const sh = Number(s.split(':')[0]);
+    say.textContent = 'Starts ' + formatTime(s).toUpperCase() + ' ' + dayPart(sh) + (e ? ', ends ' + formatTime(e).toUpperCase() : '') + '.';
+    if (sh < 6 || sh >= 21) {
+      const fixBtn = sh < 12 ? '<button type="button" class="btn-outline" style="margin-top:8px" onclick="sfMakePm()">Make it ' + formatTime(addMinutes(s, 720)).toUpperCase() + ' instead</button>' : '';
+      warn.innerHTML = '<strong>Check the time.</strong> ' + formatTime(s).toUpperCase() + ' is ' + (sh < 12 ? 'very early ' : 'late ') + dayPart(sh) + '. Reminders go out at exactly this time. Meant the other half of the day?' + fixBtn;
+      warn.style.display = 'block';
+    } else {
+      warn.style.display = 'none';
+    }
+  }
+  function sfMakePm() {
+    const s = document.getElementById('sf-time').value, e = document.getElementById('sf-end').value;
+    if (!s) return;
+    const dur = e ? minutesBetween(s, e) : 30;
+    const ns = addMinutes(s, 720);
+    document.getElementById('sf-time').value = ns;
+    document.getElementById('sf-end').value = addMinutes(ns, dur > 0 ? dur : 30);
+    sfPrevStart = ns; sfTimeAck = '';
+    sfUpdateDurationNote();
+  }
+
   function sfStartChanged() {
+    sfTimeAck = '';
     const s = document.getElementById('sf-time').value;
     const e = document.getElementById('sf-end').value;
     if (!s) return;
@@ -1212,6 +1251,7 @@
 
   function openSubjectForm(id, presetDay) {
     clearError('sf-error');
+    sfTimeAck = '';
     editingSubject = id ? ttSubjects.find(s => String(s.id) === String(id)) || null : null;
     const editing = !!editingSubject;
     document.getElementById('sf-title').textContent = editing ? 'Edit ' + DAY_NAMES[editingSubject.day_of_week] + ' session' : 'Add subject';
@@ -1249,6 +1289,12 @@
     if (!endTime) { showError('sf-error', 'Pick an end time.'); return; }
     const duration = minutesBetween(time, endTime);
     if (duration <= 0) { showError('sf-error', 'The end time must be after the start time.'); return; }
+    const startHour = Number(time.split(':')[0]);
+    if ((startHour < 6 || startHour >= 21) && sfTimeAck !== time) {
+      sfTimeAck = time;
+      showError('sf-error', formatTime(time).toUpperCase() + ' is ' + (startHour < 12 ? 'in the early morning' : 'late at night') + '. If that is right, tap Save again. If not, change the time (or tap the button below).');
+      return;
+    }
 
     const btn = document.getElementById('sf-save');
     btn.disabled = true; btn.textContent = 'Saving...';
