@@ -202,7 +202,7 @@
     <p class="sub">Enter your name and the purchase code you received after buying PENROV.</p>
     <div class="error" id="signup-error"></div>
     <div class="field"><label>Your name</label><input id="signup-name" type="text" placeholder="e.g. Blessing"></div>
-    <div class="field"><label>Purchase code</label><input id="signup-code" type="text" autocapitalize="characters" autocomplete="off" placeholder="e.g. MANGO-LION-482" autocorrect="off" spellcheck="false"></div>
+    <div class="field"><label>Purchase code</label><input id="signup-code" type="text" autocapitalize="characters" autocomplete="off" placeholder="Your code from WhatsApp or Gumroad" autocorrect="off" spellcheck="false"></div>
     <button class="btn" id="signup-btn" onclick="handleSignup()">Continue</button>
     <p class="sub" id="signup-buy" style="text-align:center"></p>
   </div>
@@ -619,6 +619,23 @@
       if (authError) {
         showError('signup-error', authError.message);
         btn.disabled = false; btn.textContent = 'Continue';
+        return;
+      }
+    }
+
+    // Gumroad license keys (4 groups of 8 letters/numbers) are checked with Gumroad first
+    if (/^[0-9a-f]{8}-[0-9a-f]{8}-[0-9a-f]{8}-[0-9a-f]{8}$/i.test(code)) {
+      const { data: gr, error: grErr } = await sb.functions.invoke('claim-gumroad', { body: { key: code } });
+      let grMsg = null;
+      if (grErr) {
+        grMsg = 'That purchase code is not valid, or has already been used.';
+        try { const j = await grErr.context.json(); if (j && j.error) grMsg = j.error; } catch (e) {}
+      } else if (!gr || gr.ok !== true) {
+        grMsg = (gr && gr.error) || 'That purchase code is not valid, or has already been used.';
+      }
+      if (grMsg) {
+        btn.disabled = false; btn.textContent = 'Continue';
+        showError('signup-error', grMsg);
         return;
       }
     }
