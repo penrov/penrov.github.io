@@ -581,6 +581,8 @@
 
   // Add your product page links here when you have them (leave empty until then).
   const BUY_LINKS = { selar: '', gumroad: '' };
+  // Your WhatsApp number for sending codes: country code + number, digits only, no + or spaces (e.g. 2348012345678). Leave empty to hide the button.
+  const WHATSAPP_NUMBER = '';
   function renderBuyLinks() {
     const el = document.getElementById('signup-buy');
     if (!el) return;
@@ -590,6 +592,10 @@
     el.innerHTML = parts.length
       ? 'No code yet? Buy PENROV on ' + parts.join(' or ') + ', one payment for your whole family.'
       : 'No code yet? Buy PENROV on Selar or Gumroad. One payment covers your whole family.';
+    if (WHATSAPP_NUMBER) {
+      const msg = encodeURIComponent('Hello, I just bought PENROV. Please send me my access code. My name is ');
+      el.innerHTML += '<br><br>Paid on Selar and need your code? <a href="https://wa.me/' + WHATSAPP_NUMBER + '?text=' + msg + '" target="_blank" rel="noopener" style="color:var(--indigo);font-weight:600">Message us on WhatsApp</a> and we will send it to you.';
+    }
   }
 
   async function handleSignup() {

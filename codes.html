@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>PENROV codes</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root { --bg:#F7F6FF; --card:#fff; --ink:#1d1b3a; --mute:#6b6990; --indigo:#4A40C1; --line:#e4e2f5; --ok:#1f8a4c; --bad:#c0392b; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#14132b; --card:#1f1e3d; --ink:#f0efff; --mute:#a8a6d0; --line:#35335f; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,Segoe UI,Roboto,sans-serif; padding:16px; }
+  .wrap { max-width:480px; margin:0 auto; }
+  h1 { font-size:22px; margin:8px 0 4px; }
+  .sub { color:var(--mute); font-size:14px; margin:0 0 16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
+  input { width:100%; padding:12px; font-size:16px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--ink); margin-bottom:10px; }
+  button { width:100%; padding:14px; font-size:16px; font-weight:600; border:0; border-radius:10px; background:var(--indigo); color:#fff; margin-bottom:8px; }
+  button.alt { background:transparent; color:var(--indigo); border:1px solid var(--indigo); }
+  button:disabled { opacity:.6; }
+  .big { font-size:26px; font-weight:700; text-align:center; letter-spacing:.5px; padding:14px 6px; background:var(--bg); border-radius:10px; margin:8px 0 12px; word-break:break-all; }
+  .err { color:var(--bad); font-size:14px; margin:6px 0; min-height:18px; }
+  .count { font-size:15px; margin-bottom:12px; }
+  .row { display:flex; justify-content:space-between; gap:8px; padding:9px 0; border-top:1px solid var(--line); font-size:14px; }
+  .row b { font-size:14px; }
+  .tag { font-size:12px; padding:2px 8px; border-radius:99px; white-space:nowrap; align-self:center; }
+  .used { background:#dff5e8; color:var(--ok); } .wait { background:#fff1d6; color:#a56a00; }
+  .hide { display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PENROV codes</h1>
+  <p class="sub">Only for you. Keep this page and your passphrase private.</p>
+
+  <div class="card" id="lock">
+    <input id="pass" type="password" placeholder="Your passphrase" autocomplete="current-password" autocapitalize="none" autocorrect="off">
+    <button id="openbtn" onclick="openPage()">Open</button>
+    <div class="err" id="lock-err"></div>
+  </div>
+
+  <div id="main" class="hide">
+    <div class="card">
+      <div class="count" id="count"></div>
+      <input id="note" type="text" placeholder="Who is it for? (name or number, optional)">
+      <button id="givebtn" onclick="give()">Give next code</button>
+      <div id="given" class="hide">
+        <div class="big" id="given-code"></div>
+        <button class="alt" onclick="copyText(document.getElementById('given-code').textContent, this)">Copy code</button>
+        <button class="alt" onclick="copyMsg(this)">Copy message to send</button>
+      </div>
+      <div class="err" id="err"></div>
+    </div>
+
+    <div class="card">
+      <b>Codes given out</b>
+      <div id="list" style="margin-top:8px"></div>
+    </div>
+
+    <button class="alt" id="makebtn" onclick="makeMore()">Make 10 more codes</button>
+    <button class="alt" onclick="lockUp()">Lock this page</button>
+  </div>
+</div>
+
+<script>
+  const sb = supabase.createClient("https://qvitgveyyuomqfccehth.supabase.co", "sb_publishable_Ue53QNrMveynqKG07ChoKQ_mSb-ctI9", { auth: { persistSession: false } });
+  let PASS = '';
+  function $(id) { return document.getElementById(id); }
+  function esc(t) { const d = document.createElement('div'); d.textContent = t == null ? '' : t; return d.innerHTML; }
+
+  async function openPage() {
+    const p = $('pass').value;
+    if (!p.trim()) { $('lock-err').textContent = 'Type your passphrase.'; return; }
+    $('lock-err').textContent = ''; $('openbtn').disabled = true; $('openbtn').textContent = 'Checking...';
+    PASS = p;
+    const ok = await refresh($('lock-err'));
+    $('openbtn').disabled = false; $('openbtn').textContent = 'Open';
+    if (ok) { $('lock').classList.add('hide'); $('main').classList.remove('hide'); }
+  }
+
+  async function refresh(errEl) {
+    const { data, error } = await sb.rpc('admin_codes', { pass: PASS });
+    if (error) { errEl.textContent = error.message; return false; }
+    $('count').innerHTML = '<b>' + data.left + '</b> unused code' + (data.left === 1 ? '' : 's') + ' left';
+    $('list').innerHTML = data.given.length ? data.given.map(r =>
+      '<div class="row"><div><b>' + esc(r.code) + '</b><br><span style="color:var(--mute)">' + esc(r.to || 'no note') + ' &middot; ' + new Date(r.given_at).toLocaleDateString() + '</span></div>' +
+      '<span class="tag ' + (r.used ? 'used' : 'wait') + '">' + (r.used ? 'Used' : 'Not used yet') + '</span></div>').join('') : '<p class="sub">Nothing yet.</p>';
+    return true;
+  }
+
+  async function give() {
+    $('err').textContent = ''; $('givebtn').disabled = true;
+    const { data, error } = await sb.rpc('admin_give_code', { pass: PASS, note: $('note').value });
+    $('givebtn').disabled = false;
+    if (error) { $('err').textContent = error.message; return; }
+    $('given-code').textContent = data; $('given').classList.remove('hide'); $('note').value = '';
+    refresh($('err'));
+  }
+
+  function copyMsg(btn) {
+    const c = $('given-code').textContent;
+    copyText('Thank you for buying PENROV! Your access code is: ' + c + '\nOpen penrov.github.io, tap "Get started with my purchase code", enter your name and this code. It works once, for your whole family.', btn);
+  }
+
+  async function copyText(t, btn) {
+    const old = btn.textContent;
+    try { await navigator.clipboard.writeText(t); btn.textContent = 'Copied'; }
+    catch (e) { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); btn.textContent = 'Copied'; } catch (e2) { btn.textContent = 'Press and hold the code to copy'; } ta.remove(); }
+    setTimeout(() => { btn.textContent = old; }, 1800);
+  }
+
+  async function makeMore() {
+    $('makebtn').disabled = true;
+    const { error } = await sb.rpc('admin_make_codes', { pass: PASS, n: 10 });
+    $('makebtn').disabled = false;
+    if (error) { $('err').textContent = error.message; return; }
+    refresh($('err'));
+  }
+
+  function lockUp() { PASS = ''; $('pass').value = ''; $('given').classList.add('hide'); $('main').classList.add('hide'); $('lock').classList.remove('hide'); }
+  $('pass').addEventListener('keydown', e => { if (e.key === 'Enter') openPage(); });
+</script>
+</body>
+</html>
